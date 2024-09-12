@@ -24,7 +24,6 @@ const corsOptions = {
     origin: process.env.URL,
     credentials: true
 }
-console.log(`Client: ${process.env.URL}`);
 app.use(cors(corsOptions));
 
 app.use("/api/v1/user", userRoute);
