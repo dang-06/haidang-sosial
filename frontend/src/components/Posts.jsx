@@ -14,9 +14,9 @@ const CustomSelect = ({ selectedSort, onChange }) => {
   };
   return (
     <Select.Root value={selectedSort} onValueChange={onChange}>
-      <Select.Trigger className="bg-white rounded-full px-4 py-2 text-sm font-semibold hover:bg-gray-300">
+      <Select.Trigger className="bg-white rounded-full px-2 text-xs font-semibold hover:bg-gray-300">
         <div className='flex items-center justify-center'>
-        {sortOptions[selectedSort] || 'Sort By'} <FaChevronDown  className='ml-2'/>
+          <span className='text-slate-400 text-xs'>{sortOptions[selectedSort] || 'Sort By'}</span> <FaChevronDown className='ml-2 text-slate-400' />
         </div>
       </Select.Trigger>
       <Select.Content className="bg-white border rounded-lg mt-2 w-full shadow-lg z-10 shadow">

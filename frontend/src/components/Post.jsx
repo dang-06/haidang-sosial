@@ -117,12 +117,12 @@ const Post = ({ post }) => {
         }
     }
     return (
-        <div className='my-8 w-full max-w-sm mx-auto min-w-[600px] transition-all duration-[300ms]'>
+        <div className='my-5 w-full mx-auto w-[550px] transition-all duration-[300ms]'>
             <div className='flex items-center justify-between mb-1'>
                 <div className='flex items-center gap-2'>
                     <Avatar>
                         <AvatarImage src={post.author?.profilePicture} alt="post_image" />
-                        <AvatarFallback>CN</AvatarFallback>
+                        <AvatarFallback>{post.author?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className='flex items-center gap-3'>
                         <h5 className='font-semibold'>{post.author?.username}</h5>
@@ -145,14 +145,17 @@ const Post = ({ post }) => {
                     </DialogContent>
                 </Dialog>
             </div>
-            <span className=''>
+            <span className='text-black text-sm'>
                 {post.caption}
             </span>
+            <div className='flex bg-black w-[550px] max-h-[450px] rounded-md my-2 object-cover overflow-hidden text-center justify-center'>
             <img
-                className='rounded-md my-2 object-cover'
+                className='max-h-[450px]'
                 src={post.image}
                 alt="post_img"
             />
+            </div>
+
 
             <div className='flex items-center justify-between my-2'>
                 <div className='flex items-center gap-3'>

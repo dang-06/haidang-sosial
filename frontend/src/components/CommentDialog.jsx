@@ -20,6 +20,7 @@ const CommentDialog = ({ open, setOpen }) => {
     if (selectedPost) {
       setComment(selectedPost.comments);
     }
+    console.log(selectedPost)
   }, [selectedPost]);
 
   const changeEventHandler = (e) => {
@@ -74,7 +75,7 @@ const CommentDialog = ({ open, setOpen }) => {
                 <Link>
                   <Avatar>
                     <AvatarImage src={selectedPost?.author?.profilePicture} />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>{selectedPost?.author?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Link>
                 <div>

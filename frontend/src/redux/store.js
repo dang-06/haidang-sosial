@@ -4,6 +4,7 @@ import postSlice from './postSlice.js';
 import socketSlice from "./socketSlice.js"
 import chatSlice from "./chatSlice.js";
 import rtnSlice from "./rtnSlice.js";
+import currentSlice from "./currentSlice.js";
 
 import { 
     persistReducer,
@@ -28,7 +29,8 @@ const rootReducer = combineReducers({
     post:postSlice,
     socketio:socketSlice,
     chat:chatSlice,
-    realTimeNotification:rtnSlice
+    realTimeNotification:rtnSlice,
+    current:currentSlice
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

@@ -11,7 +11,7 @@ const useGetRTM = () => {
     useEffect(() => {
         if (user) {
             // Initialize socket connection
-            const socket = io('http://localhost:3000', {
+            const socket = io(import.meta.env.VITE_SOCKET_URI, {
                 query: {
                     userId: user?._id
                 },
