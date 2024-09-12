@@ -54,7 +54,7 @@ function App() {
   useEffect(() => {
     if (user) {
       // Initialize socket connection
-      const socketio = io('http://localhost:3000', {
+      const socketio = io(import.meta.env.VITE_SOCKET_URI, {
         query: {
           userId: user?._id
         },
