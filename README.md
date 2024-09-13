@@ -1,4 +1,4 @@
-<div align="center"> <img src="/frontend/public/1.png"> </div>
+<div align="center"> <img src="/frontend/public/logo.png"> </div>
 
 
 ## What is it?
