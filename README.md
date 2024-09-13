@@ -2,62 +2,62 @@
   <img style="width:50%" src="/frontend/public/logo.png" alt="Logo">
 </div>
 
-## What is it?
-**haidang sosial** is a modern social media platform designed to help you connect, share, and interact with your friends, family, and community in an engaging and enjoyable way. here are some of the highlights of the application:
-- **social connectivity**: connect with friends, family, and like-minded individuals. share posts, images, videos, and your thoughts easily.
-- **engage and participate**: join community groups and events where you can discuss, share, and learn from others with similar interests.
-- **real-time notifications**: get instant notifications about activities and new messages, keeping you updated with the latest information.
-- **privacy and security**: manage your privacy settings easily and protect your personal information with robust security options.
-- **responsive design**: enjoy a seamless experience on both desktop and mobile devices, with a user interface optimized for all screen sizes.
-- **personalization**: customize your profile and control the content you see according to your preferences and needs.
-visit our website to learn more and start connecting with the community today: [haidang sosial website](https://haidang-sosial.onrender.com/)
+## What Is It?
+**Haidang Sosial** Is A Modern Social Media Platform Designed To Help You Connect, Share, And Interact With Your Friends, Family, And Community In An Engaging And Enjoyable Way. Here Are Some Of The Highlights Of The Application:
+- **Social Connectivity**: Connect With Friends, Family, And Like-Minded Individuals. Share Posts, Images, Videos, And Your Thoughts Easily.
+- **Engage And Participate**: Join Community Groups And Events Where You Can Discuss, Share, And Learn From Others With Similar Interests.
+- **Real-Time Notifications**: Get Instant Notifications About Activities And New Messages, Keeping You Updated With The Latest Information.
+- **Privacy And Security**: Manage Your Privacy Settings Easily And Protect Your Personal Information With Robust Security Options.
+- **Responsive Design**: Enjoy A Seamless Experience On Both Desktop And Mobile Devices, With A User Interface Optimized For All Screen Sizes.
+- **Personalization**: Customize Your Profile And Control The Content You See According To Your Preferences And Needs.
+Visit Our Website To Learn More And Start Connecting With The Community Today: [Haidang Sosial Website](https://haidang-sosial.onrender.com/)
 
-## Tech used
-- **[mongodb](https://www.mongodb.com/)**: a nosql database used for storing application data.
-- **[express.js](https://expressjs.com/)**: a fast, minimalist web framework for node.js, used for building the backend api.
-- **[react](https://reactjs.org/)**: a javascript library for building user interfaces, used for the frontend of the application.
-- **[node.js](https://nodejs.org/)**: a javascript runtime used for building and running the backend server.
-- **[vite](https://vitejs.dev/)**: a build tool and development server used for the frontend development.
+## Tech Used
+- **[Mongodb](https://www.mongodb.com/)**: A Nosql Database Used For Storing Application Data.
+- **[Express.js](https://expressjs.com/)**: A Fast, Minimalist Web Framework For Node.js, Used For Building The Backend Api.
+- **[React](https://reactjs.org/)**: A Javascript Library For Building User Interfaces, Used For The Frontend Of The Application.
+- **[Node.js](https://nodejs.org/)**: A Javascript Runtime Used For Building And Running The Backend Server.
+- **[Vite](https://vitejs.dev/)**: A Build Tool And Development Server Used For The Frontend Development.
 
-## Get started
-to get started with the project, follow these steps to set up both the frontend and backend.
+## Get Started
+To Get Started With The Project, Follow These Steps To Set Up Both The Frontend And Backend.
 
-### 1. setup backend
-1. **install backend dependencies**:
+### 1. Setup Backend
+1. **Install Backend Dependencies**:
     ```bash
     npm install
     ```
-2. **start the backend server**:
+2. **Start The Backend Server**:
     ```bash
     npm run dev
     ```
-    this command starts the development server for the backend, typically running on `http://localhost:${PORT}`.
-### 2. setup frontend
-1. **navigate to the frontend directory**:
+    This Command Starts The Development Server For The Backend, Typically Running On `http://localhost:${PORT}`.
+### 2. Setup Frontend
+1. **Navigate To The Frontend Directory**:
     ```bash
     cd frontend
     ```
-2. **install frontend dependencies**:
+2. **Install Frontend Dependencies**:
     ```bash
     npm install
     ```
-3. **start the frontend development server**:
+3. **Start The Frontend Development Server**:
     ```bash
     npm run dev
     ```
-    this command starts the development server for the frontend, typically running on `http://localhost:5173`.
-### 3. build for production
-to create a production build of the frontend application, follow these steps:
-1. **navigate to the frontend directory**:
+    This Command Starts The Development Server For The Frontend, Typically Running On `http://localhost:5173`.
+### 3. Build For Production
+To Create A Production Build Of The Frontend Application, Follow These Steps:
+1. **Navigate To The Frontend Directory**:
     ```bash
     cd frontend
     ```
-2. **build the frontend for production**:
+2. **Build The Frontend For Production**:
     ```bash
     npm run build
     ```
-    this creates a production build of the frontend application in the `frontend/dist` directory.
+    This Creates A Production Build Of The Frontend Application In The `frontend/dist` Directory.
    
-### Additional setup
-- **environment variables**: ensure you have a `.env` file with the required environment variables.
-by following these steps, you will have both the frontend and backend servers running and be able to interact with your full-stack application.
+### Additional Setup
+- **Environment Variables**: Ensure You Have A `.env` File With The Required Environment Variables.
+By Following These Steps, You Will Have Both The Frontend And Backend Servers Running And Be Able To Interact With Your Full-Stack Application.
