@@ -1,4 +1,6 @@
-<div align="center"> <img src="/frontend/public/logo.png"> </div>
+<div align="center" width="50%">
+  <img src="/frontend/public/logo.png" alt="Logo">
+</div>
 
 
 ## What is it?
