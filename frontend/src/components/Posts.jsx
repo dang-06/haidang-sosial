@@ -42,7 +42,7 @@ const Posts = () => {
       <div className="relative inline-block text-left">
         <CustomSelect selectedSort={selectedSort} onChange={handleSortChange} />
       </div>
-      <hr width="100%" size="10px" align="center" className='my-3' />
+      <hr width="100%" size="10px" align="center" className='mb-3 mt-1' />
       {
         posts.map((post) => <Post key={post._id} post={post} />)
       }

@@ -118,14 +118,14 @@ const Post = ({ post }) => {
     }
     return (
         <div className='my-5 w-full mx-auto w-[550px] transition-all duration-[300ms]'>
-            <div className='flex items-center justify-between mb-1'>
+            <div className='flex items-center justify-between mb-1 px-2 md:px-0'>
                 <div className='flex items-center gap-2'>
                     <Avatar>
                         <AvatarImage src={post.author?.profilePicture} alt="post_image" />
                         <AvatarFallback>{post.author?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className='flex items-center gap-3'>
-                        <h5 className='font-semibold'>{post.author?.username}</h5>
+                        <span className=''>{post.author?.username}</span>
                         {user?._id === post.author._id && <Badge variant="secondary">Author</Badge>}
                     </div>
                 </div>
@@ -145,10 +145,10 @@ const Post = ({ post }) => {
                     </DialogContent>
                 </Dialog>
             </div>
-            <span className='text-black text-sm'>
+            <span className='text-black text-sm px-2 md:px-0'>
                 {post.caption}
             </span>
-            <div className='flex bg-black w-[550px] max-h-[450px] rounded-md my-2 object-cover overflow-hidden text-center justify-center'>
+            <div className='flex bg-black md:w-[550px] max-h-[450px] md:rounded-md my-2 object-cover overflow-hidden text-center justify-center'>
             <img
                 className='max-h-[450px]'
                 src={post.image}
@@ -157,7 +157,7 @@ const Post = ({ post }) => {
             </div>
 
 
-            <div className='flex items-center justify-between my-2'>
+            <div className='flex items-center justify-between my-2 px-2 md:px-0'>
                 <div className='flex items-center gap-3'>
                     {
                         liked ?
@@ -183,17 +183,17 @@ const Post = ({ post }) => {
                     marked ? <Bookmark onClick={bookmarkHandler} className='cursor-pointer text-yellow-600 hover:scale-110 transition-all duration-300 ease-in-out transform' /> : <Bookmark onClick={bookmarkHandler} className='cursor-pointer hover:text-gray-600 hover:scale-110 transition-all duration-300 ease-in-out transform' />
                 }
             </div>
-            <span className='font-medium block mb-2'>{postLike} likes</span>
+            <span className='block mb-2 px-2 md:px-0'>{postLike} likes</span>
             {
                 comment.length > 0 && (
                     <span onClick={() => {
                         dispatch(setSelectedPost(post));
                         setOpen(true);
-                    }} className='cursor-pointer text-sm text-gray-400 mt-2'>View all {comment.length} comments</span>
+                    }} className='cursor-pointer text-sm text-gray-400 mt-2 px-2 md:px-0'>View all {comment.length} comments</span>
                 )
             }
             <CommentDialog open={open} setOpen={setOpen} />
-            <div className='flex items-center justify-between mt-1'>
+            <div className='flex items-center justify-between mt-1 px-2 md:px-0'>
                 <input
                     type="text"
                     placeholder='Add a comment...'
