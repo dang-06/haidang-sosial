@@ -22,12 +22,6 @@ const Post = ({ post }) => {
     const [comment, setComment] = useState(post.comments);
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        console.log(posts)
-        console.log(post._id)
-        console.log(marked)
-    }, [marked, post])
-
     const changeEventHandler = (e) => {
         const inputText = e.target.value;
         if (inputText.trim()) {
@@ -42,7 +36,6 @@ const Post = ({ post }) => {
             const action = liked ? 'dislike' : 'like';
             setLiked(!liked);
             const res = await axios.get(`${import.meta.env.VITE_API_URI}/post/${post._id}/${action}`, { withCredentials: true });
-            console.log(res.data);
             if (res.data.success) {
                 const updatedLikes = liked ? postLike - 1 : postLike + 1;
                 setPostLike(updatedLikes);
@@ -71,7 +64,6 @@ const Post = ({ post }) => {
                 },
                 withCredentials: true
             });
-            console.log(res.data);
             if (res.data.success) {
                 const updatedCommentData = [...comment, res.data.comment];
                 setComment(updatedCommentData);

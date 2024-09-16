@@ -272,6 +272,47 @@ export const getSuggestedUsers = async (req, res) => {
         console.log(error);
     }
 };
+export const getAllUser = async (req, res) => {
+    try {
+        const username= req.query.username || '';
+        let limit = parseInt(req.query.limit, 10);
+
+        if (!limit || isNaN(limit)) {
+            return res.status(400).json({
+                message: 'Limit is required and must be a valid number',
+            });
+        }
+
+        if (!username) {
+            return res.status(200).json({
+                success: true,  
+                users: []
+            });
+        };
+        const Users = await User.find({
+            _id: { $ne: req.id },  
+            active: { $ne: false }, 
+            username: { $regex: username, $options: 'i' }  
+        }).select("-password").limit(limit);           
+
+        if (!Users || Users.length === 0) {
+            return res.status(200).json({
+                success: true,  
+                users: []
+            });
+        };
+        return res.status(200).json({
+            success: true,  
+            users: Users
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server Error'
+        });
+    }
+};
 export const followOrUnfollow = async (req, res) => {
     try {
         const followKrneWala = req.id;

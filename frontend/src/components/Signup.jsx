@@ -17,7 +17,7 @@ const Signup = () => {
         username: "",
         email: "",
         password: "",
-        totp:""
+        totp: ""
     });
     const [loading, setLoading] = useState(false);
     const [loadingVerify, setLoadingVerify] = useState(false);
@@ -83,19 +83,19 @@ const Signup = () => {
     }, [])
     return (
         <div className='flex items-center w-screen h-screen justify-center'>
-            <div className='shadow-lg flex flex-col gap-5 p-8'>
-                <div className='my-4'>
-                    <h1 className='text-center font-bold text-xl'>LOGO</h1>
-                    <p className='text-sm text-center'>Signup to see photos & videos from your friends</p>
+            <div className='shadow-lg flex flex-col gap-5 p-8 md:w-[500px]'>
+                <div className='my-2 flex flex-col items-center'>
+                    <img className='w-[100px] md:w-[200px] my-6' src="/newLogo.png" alt="" />
+                    <p className='text-base text-center'>Theo dõi mọi người, khám phá xu hướng mới</p>
                 </div>
                 <div>
-                    <span className='font-medium'>Username</span>
+                    <span className='font-medium'>Tên hiển thị</span>
                     <Input
                         type="text"
                         name="username"
                         value={input.username}
                         onChange={changeEventHandler}
-                        className="focus-visible:ring-transparent my-2"
+                        className="focus-visible:ring-transparent"
                     />
                 </div>
                 <div>
@@ -105,34 +105,34 @@ const Signup = () => {
                         name="email"
                         value={input.email}
                         onChange={changeEventHandler}
-                        className="focus-visible:ring-transparent my-2"
+                        className="focus-visible:ring-transparent"
                     />
                 </div>
                 <div>
-                    <span className='font-medium'>Password</span>
+                    <span className='font-medium'>Mật khẩu</span>
                     <Input
                         type="password"
                         name="password"
                         value={input.password}
                         onChange={changeEventHandler}
-                        className="focus-visible:ring-transparent my-2"
+                        className="focus-visible:ring-transparent"
                     />
                 </div>
                 {
                     loadingVerify ? (
                         <Button>
                             <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                            Please wait
+                            Xin chờ...
                         </Button>
                     ) : (
-                        <Button onClick={verifyHandler}>Signup</Button>
+                        <Button onClick={verifyHandler}>Đăng kí</Button>
                     )
                 }
-                <span className='text-center'>Already have an account? <Link to="/login" className='text-blue-600'>Login</Link></span>
+                <span className='text-center mt-4'>Bạn đã có tài khoản  <Link to="/login" className='text-blue-600'>Đăng nhập</Link></span>
             </div>
             <Modal
                 open={open}
-                onClose={()=>{setOpen(false)}}
+                onClose={() => { setOpen(false) }}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
                 className='shadow-lg flex flex-col gap-5 p-8'
@@ -142,8 +142,10 @@ const Signup = () => {
                         TOTP
                     </Typography> */}
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                        <p className='text-base text-center'>Mã OTP đã được gửi đến Email của bạn</p>
+
                         <div>
-                            <span className='font-medium'>TOTP</span>
+                            <span className='font-medium'>OTP</span>
                             <div className="flex">
                                 <Input
                                     type="text"
@@ -158,7 +160,7 @@ const Signup = () => {
                                             <Loader2 className='mr-1 h-4 w-4 animate-spin' />
                                         </Button>
                                     ) : (
-                                        <Button className='mt-2 ml-2' onClick={signupHandler}>Submit</Button>
+                                        <Button className='mt-2 ml-2' onClick={signupHandler}>Xác nhận</Button>
                                     )
                                 }
                             </div>

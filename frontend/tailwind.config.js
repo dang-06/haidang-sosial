@@ -1,3 +1,5 @@
+const { orange } = require('@mui/material/colors');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -30,6 +32,10 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      colors: {
+        maincolor: 'rgb(249, 115, 22)',
+        // maincolor: 'rgb(234, 179, 8)',
       },
     },
   },

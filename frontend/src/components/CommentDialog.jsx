@@ -20,7 +20,6 @@ const CommentDialog = ({ open, setOpen }) => {
     if (selectedPost) {
       setComment(selectedPost.comments);
     }
-    console.log(selectedPost)
   }, [selectedPost]);
 
   const changeEventHandler = (e) => {

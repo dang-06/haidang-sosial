@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Button } from './ui/button'
 import { setCurrentPage } from '@/redux/currentSlice'
 
-const LeftSidebar = ({sidebarOpen,toggleSidebar}) => {
+const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
     const navigate = useNavigate();
     const { user } = useSelector(store => store.auth);
     const { likeNotification } = useSelector(store => store.realTimeNotification);
@@ -27,19 +27,19 @@ const LeftSidebar = ({sidebarOpen,toggleSidebar}) => {
     const notificationRef1 = useRef(null);
 
     useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (notificationRef.current && !notificationRef.current.contains(event.target) && notificationRef1 && !notificationRef1.current.contains(event.target)) {
-          setOpenNoti(false);
-        }
-      };
-  
-      document.addEventListener('mousedown', handleClickOutside);
-  
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }, [notificationRef,notificationRef1]);
-  
+        const handleClickOutside = (event) => {
+            if (notificationRef.current && !notificationRef.current.contains(event.target) && notificationRef1 && !notificationRef1.current.contains(event.target)) {
+                setOpenNoti(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [notificationRef, notificationRef1]);
+
 
     useEffect(() => {
         let page = '';
@@ -53,7 +53,7 @@ const LeftSidebar = ({sidebarOpen,toggleSidebar}) => {
             page = 'Signup';
         }
         dispatch(setCurrentPage(page));
-        if(window.innerWidth < 768){
+        if (window.innerWidth < 768) {
             toggleSidebar(false)
         }
     }, [dispatch, path]);
@@ -120,7 +120,7 @@ const LeftSidebar = ({sidebarOpen,toggleSidebar}) => {
                                         {index == 6 && (
                                             <hr></hr>
                                         )}
-                                        <div ref={notificationRef1}  onClick={() => sidebarHandler(item.text)} className={`${isActive ? 'bg-gray-200' : 'hover:bg-gray-100'} flex items-center gap-4 relative hover:bg-gray-100 cursor-pointer rounded-lg p-3 my-1`}>
+                                        <div ref={notificationRef1} onClick={() => sidebarHandler(item.text)} className={`${isActive ? 'bg-gray-200' : 'hover:bg-gray-100'} flex items-center gap-4 relative hover:bg-gray-100 cursor-pointer rounded-lg p-3 my-1`}>
                                             {item.icon}
                                             <span>{item.text}</span>
                                             {
@@ -163,7 +163,7 @@ const LeftSidebar = ({sidebarOpen,toggleSidebar}) => {
 
             </div>
             {openNoti && <div
-                ref={notificationRef} 
+                ref={notificationRef}
                 style={{
                     transitionProperty: 'all',
                     transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',

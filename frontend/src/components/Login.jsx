@@ -56,43 +56,43 @@ const Login = () => {
     },[])
     return (
         <div className='flex items-center w-screen h-screen justify-center'>
-            <form onSubmit={signupHandler} className='shadow-lg flex flex-col gap-5 px-8 pb-8 pt-3'>
-                <div className='mb-4 flex flex-col items-center'>
-                    <img className='w-[100px] md:w-[200px]' src="/2.png" alt="" />
-                    <p className='text-sm text-center'>Login to see photos & videos from your friends</p>
+            <form onSubmit={signupHandler} className='shadow-lg flex flex-col gap-5 p-8 md:w-[500px]'>
+                <div className='mb-2 flex flex-col items-center'>
+                    <img className='w-[100px] md:w-[200px] my-6' src="/newLogo.png" alt="" />
+                    <p className='text-base text-center'>Mở rộng kết nối, theo dõi và khám phá xu hướng nổi bật!</p>
                 </div>
                 <div>
-                    <span className='font-medium'>Email</span>
+                    <span className='font-medium'>Email</span>  
                     <Input
                         type="email"
                         name="email"
                         value={input.email}
                         onChange={changeEventHandler}
-                        className="focus-visible:ring-transparent my-2"
+                        className="focus-visible:ring-transparent mt-2"
                     />
                 </div>
                 <div>
-                    <span className='font-medium'>Password</span>
+                    <span className='font-medium'>Mật khẩu</span>
                     <Input
                         type="password"
                         name="password"
                         value={input.password}
                         onChange={changeEventHandler}
-                        className="focus-visible:ring-transparent my-2"
+                        className="focus-visible:ring-transparent mb-2"
                     />
                 </div>
                 {
                     loading ? (
                         <Button>
                             <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                            Please wait
+                            Xin chờ...
                         </Button>
                     ) : (
-                        <Button type='submit'>Login</Button>
+                        <Button type='submit'>Đăng nhập</Button>
                     )
                 }
 
-                <span className='text-center'>Dosent have an account? <Link to="/signup" className='text-blue-600'>Signup</Link></span>
+                <span className='text-center mt-4'>Bạn chưa có tài khoản? <Link to="/signup" className='text-blue-600'>Đăng kí ngay</Link></span>
             </form>
         </div>
     )
