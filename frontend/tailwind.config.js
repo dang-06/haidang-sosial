@@ -39,5 +39,19 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-}
+  plugins: [
+    require("tailwindcss-animate"),
+    function ({ addUtilities }) {
+      const newUtilities = {
+        '.no-scrollbar': {
+          'scrollbar-width': 'none', /* Firefox */
+          '-ms-overflow-style': 'none',  /* IE và Edge */
+        },
+        '.no-scrollbar::-webkit-scrollbar': {
+          'display': 'none', /* Chrome, Safari, Opera */
+        },
+      }
+      addUtilities(newUtilities, ['responsive']); // Đăng ký với các lớp responsive
+    }
+  ],
+};

@@ -4,6 +4,7 @@ import { Post } from "../models/post.model.js";
 import { User } from "../models/user.model.js";
 import { Comment } from "../models/comment.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+import e from "cors";
 
 export const addNewPost = async (req, res) => {
     try {
@@ -48,10 +49,20 @@ export const getAllPost = async (req, res) => {
             .populate({
                 path: 'comments',
                 sort: { createdAt: -1 },
-                populate: {
-                    path: 'author',
-                    select: 'username profilePicture'
-                }
+                populate: [
+                    {
+                        path: 'author',
+                        select: 'username profilePicture'
+                    },
+                    {
+                        path: 'replies',
+                        sort: { createdAt: -1 },
+                        populate: {
+                            path: 'author',
+                            select: 'username profilePicture'
+                        },
+                    }
+                ]
             });
         return res.status(200).json({
             posts,
@@ -85,21 +96,21 @@ export const getUserPost = async (req, res) => {
 }
 export const likePost = async (req, res) => {
     try {
-        const likeKrneWalaUserKiId = req.id;
+        const userDoAction = req.id;
         const postId = req.params.id;
         const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ message: 'Post not found', success: false });
 
-        await post.updateOne({ $addToSet: { likes: likeKrneWalaUserKiId } });
+        await post.updateOne({ $addToSet: { likes: userDoAction } });
         await post.save();
 
-        const user = await User.findById(likeKrneWalaUserKiId).select('username profilePicture');
+        const user = await User.findById(userDoAction).select('username profilePicture createdAt');
 
         const postOwnerId = post.author.toString();
-        if (postOwnerId !== likeKrneWalaUserKiId) {
+        if (postOwnerId !== userDoAction) {
             const notification = {
                 type: 'like',
-                userId: likeKrneWalaUserKiId,
+                userId: userDoAction,
                 userDetails: user,
                 postId,
                 message: 'Your post was liked'
@@ -116,26 +127,23 @@ export const likePost = async (req, res) => {
 }
 export const dislikePost = async (req, res) => {
     try {
-        const likeKrneWalaUserKiId = req.id;
+        const userDoAction = req.id;
         const postId = req.params.id;
         const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ message: 'Post not found', success: false });
 
-        // like logic started
-        await post.updateOne({ $pull: { likes: likeKrneWalaUserKiId } });
+        await post.updateOne({ $pull: { likes: userDoAction } });
         await post.save();
 
-        // implement socket io for real time notification
-        const user = await User.findById(likeKrneWalaUserKiId).select('username profilePicture');
+        const user = await User.findById(userDoAction).select('username profilePicture');
         const postOwnerId = post.author.toString();
-        if (postOwnerId !== likeKrneWalaUserKiId) {
-            // emit a notification event
+        if (postOwnerId !== userDoAction) {
             const notification = {
                 type: 'dislike',
-                userId: likeKrneWalaUserKiId,
+                userId: userDoAction,
                 userDetails: user,
                 postId,
-                message: 'Your post was liked'
+                message: 'Your post was disliked'
             }
             const postOwnerSocketId = getReceiverSocketId(postOwnerId);
             io.to(postOwnerSocketId).emit('notification', notification);
@@ -181,6 +189,159 @@ export const addComment = async (req, res) => {
 
     } catch (error) {
         console.log(error);
+    }
+};
+export const likeComment = async (req, res) => {
+    try {
+        const userLikeCommentId = req.id
+        const commentId = req.params.id
+
+        const comment = await Comment.findById(commentId)
+        if (!comment) {
+            const commentWithReply = await Comment.findOne({ "replies._id": commentId });
+            if (commentWithReply) {
+                const reply = commentWithReply.replies.id(commentId);
+                if (reply) {
+                    if (!reply.likes.includes(userLikeCommentId)) {
+                        await Comment.findByIdAndUpdate(
+                            commentWithReply._id,
+                            { $addToSet: { "replies.$[reply].likes": userLikeCommentId } },
+                            { arrayFilters: [{ "reply._id": commentId }], new: true }
+                        );
+
+                        const user = await User.findById(userLikeCommentId).select("username profilePicture")
+                        const commentOwnerId = reply.author.toString()
+
+                        if (userLikeCommentId != commentOwnerId) {
+                            const notification = {
+                                type: 'like comment',
+                                userId: userLikeCommentId,
+                                userDetails: user,
+                                commentId,
+                                message: 'comment was liked'
+                            }
+                            const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
+                            io.to(commentOwnerSocketId).emit('notification', notification)
+                        }
+                        return res.status(200).json({ message: 'Comment liked', success: true });
+                    } else {
+                        return res.status(200).json({ message: 'You have already liked this comment', success: false });
+                    }
+                }
+            } else {
+                return res.status(404).json({ message: 'Comment not found', success: false });
+            }
+        }
+        await comment.updateOne({ $addToSet: { likes: userLikeCommentId } })
+
+        const user = await User.findById(userLikeCommentId).select("username profilePicture")
+        const commentOwnerId = comment.author.toString()
+
+        if (userLikeCommentId != commentOwnerId) {
+            const notification = {
+                type: 'like comment',
+                userId: userLikeCommentId,
+                userDetails: user,
+                commentId,
+                message: 'comment was liked'
+            }
+            const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
+            io.to(commentOwnerSocketId).emit('notification', notification)
+        }
+        return res.status(200).json({ message: 'Comment liked', success: true });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error', success: false });
+    }
+};
+export const dislikeComment = async (req, res) => {
+    try {
+        const userDislikeCommentId = req.id
+        const commentId = req.params.id
+
+        const comment = await Comment.findById(commentId)
+        if (!comment) {
+            const commentWithReply = await Comment.findOne({ "replies._id": commentId });
+            if (commentWithReply) {
+                const reply = commentWithReply.replies.id(commentId);
+                if (reply) {
+                    if (reply.likes.includes(userDislikeCommentId)) {
+
+                        await Comment.findByIdAndUpdate(
+                            commentWithReply._id,
+                            { $pull: { "replies.$[reply].likes": userDislikeCommentId } },
+                            { arrayFilters: [{ "reply._id": commentId }], new: true }
+                        );
+
+                        const user = await User.findById(userDislikeCommentId).select("username profilePicture")
+                        const commentOwnerId = reply.author.toString()
+
+                        if (userDislikeCommentId != commentOwnerId) {
+                            const notification = {
+                                type: 'dislike comment',
+                                userId: userDislikeCommentId,
+                                userDetails: user,
+                                commentId,
+                                message: 'comment was disliked'
+                            }
+                            const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
+                            io.to(commentOwnerSocketId).emit('notification', notification)
+                        }
+                        return res.status(200).json({ message: 'Comment disliked', success: true });
+                    } else {
+                        return res.status(200).json({ message: 'You have not liked this comment yet', success: false });
+                    }
+                }
+            } else {
+                return res.status(404).json({ message: 'Comment not found', success: false });
+            }
+        }
+        await comment.updateOne({ $pull: { likes: userDislikeCommentId } })
+
+        const user = await User.findById(userDislikeCommentId).select("username profilePicture")
+        const commentOwnerId = comment.author.toString()
+
+        if (userDislikeCommentId != commentOwnerId) {
+            const notification = {
+                type: 'dislike comment',
+                userId: userDislikeCommentId,
+                userDetails: user,
+                commentId,
+                message: 'comment was disliked'
+            }
+            const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
+            io.to(commentOwnerSocketId).emit('notification', notification)
+        }
+        return res.status(200).json({ message: 'Comment disliked', success: true });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error', success: false });
+    }
+};
+export const replyComment = async (req, res) => {
+    try {
+        const userReplyId = req.id
+        const commentId = req.params.id
+        const { text } = req.body
+
+        const comment = await Comment.findById(commentId)
+        if (!text) return res.status(400).json({ message: 'text is required', success: false });
+        const replyComment = {
+            text: text,
+            author: userReplyId
+        }
+        comment.replies.push(replyComment);
+        await comment.save()
+
+        return res.status(201).json({
+            message: 'reply comment added',
+            comment,
+            success: true
+        })
+    } catch (error) {
+        console.log(error)
     }
 };
 export const getCommentsOfPost = async (req, res) => {

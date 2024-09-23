@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
+import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog'
 import { Link } from 'react-router-dom'
 import { MoreHorizontal } from 'lucide-react'
-import { Button } from './ui/button'
+import { Button } from '../ui/button'
 import { useDispatch, useSelector } from 'react-redux'
 import Comment from './Comment'
 import axios from 'axios'
@@ -10,6 +10,8 @@ import { toast } from 'sonner'
 import { setPosts } from '@/redux/postSlice'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa'
 import { Avatar } from '@mui/material'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { DialogTitle } from '@radix-ui/react-dialog'
 
 const CommentDialog = ({ open, setOpen }) => {
   const [text, setText] = useState("");
@@ -118,14 +120,17 @@ const CommentDialog = ({ open, setOpen }) => {
   }, [currentIndex]);
 
   return (
-    <Dialog open={open}>
-      <DialogContent onInteractOutside={() => setOpen(false)} className="max-w-5xl p-0 flex flex-col">
+    <Dialog open={open} className="bg-black">
+      <DialogContent onInteractOutside={() => setOpen(false)} className="max-w-7xl max-h-[90vh] p-0 flex flex-col">
+        <VisuallyHidden>
+          <DialogTitle>Your Dialog Title</DialogTitle>
+        </VisuallyHidden>
         <div className='flex flex-1 w-auto'>
-          {selectedPost?.image?.length > 0 && <div className='w-1/2 hidden md:flex justify-center relative'>
+          {selectedPost?.image?.length > 0 && <div className=' hidden md:flex justify-center relative w-[60%]'>
             <img
               src={img}
               alt="post_img"
-              className='w-auto max-h-[90vh] object-cover rounded-lg'
+              className='w-auto max-h-[90vh] object-contain rounded-lg'
             />
             {!isFirst && <button onClick={handlePrevImage} className="p-2 rounded-full absolute top-[50%] left-3 bg-white/75 z-10 text-gray-800">
               <FaAngleLeft />
@@ -135,7 +140,7 @@ const CommentDialog = ({ open, setOpen }) => {
             </button>}
 
           </div>}
-          <div className={`${selectedPost?.image?.length > 0 ? "w-full md:w-1/2" : "w-full"} flex flex-col border-l`}>
+          <div className={`${selectedPost?.image?.length > 0 ? "w-full" : "w-full"} flex flex-col border-l bg-white rounded-r-lg border border-white w-[40%]`}>
             <div className='flex items-center justify-between px-4 py-2'>
               {/* <div className='flex gap-3 items-center'>
                 <Link>
@@ -173,7 +178,7 @@ const CommentDialog = ({ open, setOpen }) => {
               <span className='px-4 line-clamp-3'>{selectedPost?.caption}</span>
               <hr />
             </div>
-            <div className='flex-1 overflow-y-auto p-4'>
+            <div className='flex-1 overflow-y-auto px-4 pb-4 max-h-[65vh] no-scrollbar'>
               {
                 comment.map((comment) => <Comment key={comment._id} comment={comment} />)
               }

@@ -25,10 +25,10 @@ const SuggestedUsers = () => {
                                 </Link>
                                 <div>
                                     <h1 className=' text-sm'><Link to={`/profile/${user?._id}`}>{user?.username}</Link></h1>
-                                    <span className='text-gray-400 text-xs'>{user?.bio || 'Người mới...'}</span>
+                                    <span className='text-gray-400 text-xs line-clamp-1'>{user?.bio || 'Người mới...'}</span>
                                 </div>
                             </div>
-                            <span className='text-maincolor text-xs font-bold cursor-pointer hover:text-opacity-50 ml-7'>Theo dõi</span>
+                            <span className='text-maincolor text-xs font-bold cursor-pointer hover:text-opacity-50'>Theo dõi</span>
                         </div>
                     )
                 })
