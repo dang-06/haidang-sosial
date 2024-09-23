@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Post from './Post'
 import { useSelector } from 'react-redux'
 import * as Select from '@radix-ui/react-select';
@@ -34,15 +34,19 @@ const Posts = () => {
   const { posts } = useSelector(store => store.post);
   const [selectedSort, setSelectedSort] = useState('best');
 
+  useEffect(() => {
+    console.log(posts);
+  }, [posts]);
+
   const handleSortChange = (value) => {
     setSelectedSort(value);
   };
   return (
     <div>
-      <div className="relative inline-block text-left">
+      {/* <div className="relative inline-block text-left">
         <CustomSelect selectedSort={selectedSort} onChange={handleSortChange} />
       </div>
-      <hr width="100%" size="10px" align="center" className='mb-3 mt-1' />
+      <hr width="100%" size="10px" align="center" className='mb-3 mt-1' /> */}
       {
         posts.map((post) => <Post key={post._id} post={post} />)
       }

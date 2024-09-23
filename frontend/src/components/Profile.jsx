@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import useGetUserProfile from '@/hooks/useGetUserProfile';
 import { Link, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { AtSign, Heart, MessageCircle } from 'lucide-react';
+import { Avatar } from '@mui/material';
 
 const Profile = () => {
   const params = useParams();
@@ -29,10 +29,7 @@ const Profile = () => {
       <div className='flex flex-col gap-20 p-8'>
         <div className='grid grid-cols-2'>
           <section className='flex items-center justify-center'>
-            <Avatar className='h-32 w-32'>
-              <AvatarImage src={userProfile?.profilePicture} alt="profilephoto" />
-              <AvatarFallback>{userProfile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
+              <Avatar sx={{width: 200, height: 200}} src={userProfile?.profilePicture} alt="profilephoto" />
           </section>
           <section>
             <div className='flex flex-col gap-5'>
@@ -85,7 +82,7 @@ const Profile = () => {
               displayedPost?.map((post) => {
                 return (
                   <div key={post?._id} className='relative group cursor-pointer'>
-                    <img src={post.image} alt='postimage' className='rounded-sm my-2 w-full aspect-square object-cover' />
+                    <img src={post?.image[0]} alt='postimage' className='rounded-sm my-2 w-full aspect-square object-cover' />
                     <div className='absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
                       <div className='flex items-center text-white space-x-4'>
                         <button className='flex items-center gap-2 hover:text-gray-300'>

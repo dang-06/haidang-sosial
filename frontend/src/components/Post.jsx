@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
 import { Bookmark, MessageCircle, MoreHorizontal, Send } from 'lucide-react'
 import { Button } from './ui/button'
@@ -10,10 +9,13 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { setPosts, setSelectedPost } from '@/redux/postSlice'
 import { Badge } from './ui/badge'
+import Avatar from '@mui/material/Avatar';
+import { ImageList, ImageListItem } from '@mui/material';
 
 const Post = ({ post }) => {
     const [text, setText] = useState("");
     const [open, setOpen] = useState(false);
+    const [formatDate, setFormatDate] = useState(false);
     const { user } = useSelector(store => store.auth);
     const { posts } = useSelector(store => store.post);
     const [liked, setLiked] = useState(post.likes.includes(user?._id) || false);
@@ -108,97 +110,133 @@ const Post = ({ post }) => {
             console.log(error);
         }
     }
+
+    useEffect(() => {
+        console.log(post);
+        console.log(comment);
+        setComment(post.comments)
+        const date = new Date(post.updatedAt);
+
+        const hours = date.getUTCHours().toString().padStart(2, '0');
+        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+        const day = date.getUTCDate().toString().padStart(2, '0');
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+        const formattedDate = `${hours}:${minutes} ${day}-${month}`;
+        setFormatDate(formattedDate)
+    }, [post])
     return (
-        <div className='my-5 w-full mx-auto w-[550px] transition-all duration-[300ms]'>
-            <div className='flex items-center justify-between mb-1 px-2 md:px-0'>
-                <div className='flex items-center gap-2'>
-                    <Avatar>
-                        <AvatarImage src={post.author?.profilePicture} alt="post_image" />
-                        <AvatarFallback>{post.author?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className='flex items-center gap-3'>
-                        <span className=''>{post.author?.username}</span>
-                        {user?._id === post.author._id && <Badge variant="secondary">Author</Badge>}
+        <div className='mb-2 bg-white'>
+            <div className='w-full mx-auto transition-all duration-[300ms] pt-4 px-5'>
+                <div className='flex items-center justify-between mb-1 px-2 md:px-0'>
+                    <div className='flex items-center gap-2'>
+                        <Avatar sx={{ width: 50, height: 50 }} alt="post_image" src={post.author?.profilePicture} />
+                        <div className='flex flex-col '>
+                            <span className='font-semibold text-base'>{post.author?.username}</span>
+                            {/* {user?._id === post.author._id && <Badge variant="secondary">Author</Badge>} */}
+                            <span className='text-xs text-gray-400'>{formatDate}</span>
+                        </div>
                     </div>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <MoreHorizontal className='cursor-pointer' />
+                        </DialogTrigger>
+                        <DialogContent className="flex flex-col items-center text-sm text-center">
+                            {
+                                post?.author?._id !== user?._id && <Button variant='ghost' className="cursor-pointer w-fit text-[#ED4956] font-bold">Unfollow</Button>
+                            }
+
+                            <Button variant='ghost' className="cursor-pointer w-fit">Add to favorites</Button>
+                            {
+                                user && user?._id === post?.author._id && <Button onClick={deletePostHandler} variant='ghost' className="cursor-pointer w-fit">Delete</Button>
+                            }
+                        </DialogContent>
+                    </Dialog>
                 </div>
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <MoreHorizontal className='cursor-pointer' />
-                    </DialogTrigger>
-                    <DialogContent className="flex flex-col items-center text-sm text-center">
-                        {
-                            post?.author?._id !== user?._id && <Button variant='ghost' className="cursor-pointer w-fit text-[#ED4956] font-bold">Unfollow</Button>
-                        }
 
-                        <Button variant='ghost' className="cursor-pointer w-fit">Add to favorites</Button>
-                        {
-                            user && user?._id === post?.author._id && <Button onClick={deletePostHandler} variant='ghost' className="cursor-pointer w-fit">Delete</Button>
-                        }
-                    </DialogContent>
-                </Dialog>
+                <div className='pl-[60px]'>
+                    <span className='text-gray-600'>
+                        {post.caption}
+                    </span>
+                    {post.image?.length == 1 ?
+                        <img
+                            className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden'
+                            src={post.image}
+                            alt="post_img"
+                        />
+                        :
+                        <ImageList sx={{ width: '100%', height: '100%' }} cols={4} rowHeight={170}>
+                            {post.image?.map((item, index) => (
+                                <ImageListItem key={index}>
+                                    <img
+                                        className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden'
+                                        srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+                                        src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                                        loading="lazy"
+                                    />
+                                </ImageListItem>
+                            ))}
+                        </ImageList>
+
+                    }
+
+                </div>
+
+
+
+                {/* <span className='block mb-2 px-2 md:px-0'>{postLike} likes</span>
+                {
+                    comment.length > 0 && (
+                        <span onClick={() => {
+                            dispatch(setSelectedPost(post));
+                            setOpen(true);
+                        }} className='cursor-pointer text-sm text-gray-400 mt-2 px-2 md:px-0'>View all {comment.length} comments</span>
+                    )
+                } */}
+                <CommentDialog open={open} setOpen={setOpen} />
+                {/* <div className='flex items-center justify-between mt-1 px-2 md:px-0'>
+                    <input
+                        type="text"
+                        placeholder='Add a comment...'
+                        value={text}
+                        onChange={changeEventHandler}
+                        className='outline-none text-sm w-full'
+                    />
+                    {
+                        text && <span onClick={commentHandler} className='text-[#3BADF8] cursor-pointer'>Post</span>
+                    }
+
+                </div>
+                <hr width="100%" size="10px" align="center" className='my-5' /> */}
             </div>
-            <span className='text-black text-sm px-2 md:px-0'>
-                {post.caption}
-            </span>
-            <div className='flex bg-black md:w-[550px] max-h-[450px] md:rounded-md my-2 object-cover overflow-hidden text-center justify-center'>
-            <img
-                className='max-h-[450px]'
-                src={post.image}
-                alt="post_img"
-            />
-            </div>
-
-
-            <div className='flex items-center justify-between my-2 px-2 md:px-0'>
-                <div className='flex items-center gap-3'>
+            <div className='flex items-center justify-between px-16 py-3 text-gray-600'>
+                <div className='flex items-center gap-2'>
                     {
                         liked ?
                             <FaHeart
                                 onClick={likeOrDislikeHandler}
-                                size={'22'}
+                                size={'20'}
                                 className="cursor-pointer text-red-600 transition-all duration-300 ease-in-out transform hover:scale-110"
                             /> :
                             <FaRegHeart
                                 onClick={likeOrDislikeHandler}
-                                size={'22'}
-                                className="cursor-pointer hover:text-gray-600 transition-all duration-300 ease-in-out transform hover:scale-110"
+                                size={'20'}
+                                className="cursor-pointer hover:text-maincolor transition-all duration-300 ease-in-out transform hover:scale-110"
                             />
                     }
-
-                    <MessageCircle onClick={() => {
-                        dispatch(setSelectedPost(post));
-                        setOpen(true);
-                    }} className='cursor-pointer hover:text-gray-600' />
-                    <Send className='cursor-pointer hover:text-gray-600' />
+                    <span className='text-gray-600'>{postLike}</span>
                 </div>
-                {
-                    marked ? <Bookmark onClick={bookmarkHandler} className='cursor-pointer text-yellow-600 hover:scale-110 transition-all duration-300 ease-in-out transform' /> : <Bookmark onClick={bookmarkHandler} className='cursor-pointer hover:text-gray-600 hover:scale-110 transition-all duration-300 ease-in-out transform' />
-                }
-            </div>
-            <span className='block mb-2 px-2 md:px-0'>{postLike} likes</span>
-            {
-                comment.length > 0 && (
-                    <span onClick={() => {
+                <div className='flex items-center gap-2'>
+                    <MessageCircle size={'20'} onClick={() => {
                         dispatch(setSelectedPost(post));
                         setOpen(true);
-                    }} className='cursor-pointer text-sm text-gray-400 mt-2 px-2 md:px-0'>View all {comment.length} comments</span>
-                )
-            }
-            <CommentDialog open={open} setOpen={setOpen} />
-            <div className='flex items-center justify-between mt-1 px-2 md:px-0'>
-                <input
-                    type="text"
-                    placeholder='Add a comment...'
-                    value={text}
-                    onChange={changeEventHandler}
-                    className='outline-none text-sm w-full'
-                />
+                    }} className='cursor-pointer hover:text-maincolor' />
+                    <span className='text-gray-600'>{comment.length}</span>
+                </div>
+                <Send size={'20'} className='cursor-pointer hover:text-maincolor' />
                 {
-                    text && <span onClick={commentHandler} className='text-[#3BADF8] cursor-pointer'>Post</span>
+                    marked ? <Bookmark size={'20'} onClick={bookmarkHandler} className='cursor-pointer text-yellow-600 transition-all duration-300 ease-in-out transform' /> : <Bookmark onClick={bookmarkHandler} className='cursor-pointer hover:text-gray-600 transition-all duration-300 ease-in-out transform hover:text-maincolor' />
                 }
-
             </div>
-            <hr width="100%" size="10px" align="center" className='my-5' />
         </div>
     )
 }
