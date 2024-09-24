@@ -48,7 +48,7 @@ export const getAllPost = async (req, res) => {
             .populate({ path: 'author', select: 'username profilePicture' })
             .populate({
                 path: 'comments',
-                sort: { createdAt: -1 },
+                options: { sort: { createdAt: -1 } },
                 populate: [
                     {
                         path: 'author',
@@ -56,7 +56,7 @@ export const getAllPost = async (req, res) => {
                     },
                     {
                         path: 'replies',
-                        sort: { createdAt: -1 },
+                        options: { sort: { createdAt: -1 } },
                         populate: {
                             path: 'author',
                             select: 'username profilePicture'

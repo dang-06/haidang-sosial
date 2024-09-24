@@ -1,3 +1,4 @@
+import { formatDateHandler } from '@/lib/utils';
 import { setPosts } from '@/redux/postSlice';
 import { Avatar } from '@mui/material';
 import axios from 'axios';
@@ -13,12 +14,8 @@ const Reply = ({ reply }) => {
     const [replyLike, setReplyLike] = useState(reply.likes.length);
     const { posts } = useSelector(store => store.post);
     const dispatch = useDispatch();
-    const date = new Date(reply?.createdAt);
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-    const formatDate = `${hours}:${minutes} ${day}-${month}`;
+    const formatDate = formatDateHandler(reply?.createdAt);
+
 
     useEffect(() => {
         setReplyLike(reply.likes.length)

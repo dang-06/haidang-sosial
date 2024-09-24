@@ -12,6 +12,8 @@ import { FaAngleLeft, FaAngleRight } from 'react-icons/fa'
 import { Avatar } from '@mui/material'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { DialogTitle } from '@radix-ui/react-dialog'
+import { formatDateHandler } from '@/lib/utils'
+import { sendComment } from '@/api/apiService'
 
 const CommentDialog = ({ open, setOpen }) => {
   const [text, setText] = useState("");
@@ -22,7 +24,8 @@ const CommentDialog = ({ open, setOpen }) => {
   const [img, setImg] = useState(selectedPost?.image?.[0] || '');
   const [isLast, setIsLast] = useState(false);
   const [isFirst, setIsFirst] = useState(true);
-  const [formatDate, setFormatDate] = useState("");
+  const formatDate = formatDateHandler(selectedPost?.createdAt);
+
 
 
 
@@ -36,14 +39,6 @@ const CommentDialog = ({ open, setOpen }) => {
       setIsFirst(true)
       setIsLast(selectedPost.image.length === 1);
     }
-    const date = new Date(selectedPost?.updatedAt);
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-    const formattedDate = `${hours}:${minutes} ${day}-${month}`;
-    setFormatDate(formattedDate)
-
   }, [selectedPost]);
 
   const changeEventHandler = (e) => {
@@ -84,12 +79,14 @@ const CommentDialog = ({ open, setOpen }) => {
   const sendMessageHandler = async () => {
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URI}/post/${selectedPost?._id}/comment`, { text }, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true
-      });
+      // const res = await axios.post(`${import.meta.env.VITE_API_URI}/post/${selectedPost?._id}/comment`, { text }, {
+      //   headers: {
+      //     'Content-Type': 'application/json'
+      //   },
+      //   withCredentials: true
+      // });
+
+      const res = await sendComment(selectedPost?._id, text)
 
       if (res.data.success) {
         const updatedCommentData = [...comment, res.data.comment];
@@ -121,11 +118,11 @@ const CommentDialog = ({ open, setOpen }) => {
 
   return (
     <Dialog open={open} className="bg-black">
-      <DialogContent onInteractOutside={() => setOpen(false)} className="max-w-7xl max-h-[90vh] p-0 flex flex-col">
+      <DialogContent onInteractOutside={() => setOpen(false)} className={` ${selectedPost?.image?.length > 0 ? "max-w-7xl" : "max-w-3xl"} max-h-[90vh] p-0 flex flex-col`}>
         <VisuallyHidden>
           <DialogTitle>Your Dialog Title</DialogTitle>
         </VisuallyHidden>
-        <div className='flex flex-1 w-auto'>
+        <div className='flex flex-1 w-auto max-h-[100%]'>
           {selectedPost?.image?.length > 0 && <div className=' hidden md:flex justify-center relative w-[60%]'>
             <img
               src={img}
@@ -140,7 +137,7 @@ const CommentDialog = ({ open, setOpen }) => {
             </button>}
 
           </div>}
-          <div className={`${selectedPost?.image?.length > 0 ? "w-full" : "w-full"} flex flex-col border-l bg-white rounded-r-lg border border-white w-[40%]`}>
+          <div className={`${selectedPost?.image?.length > 0 ? "w-[40%]" : "w-full"} flex flex-col border-l bg-white rounded-r-lg border border-white w-[40%] max-h-[100%]`}>
             <div className='flex items-center justify-between px-4 py-2'>
               {/* <div className='flex gap-3 items-center'>
                 <Link>
@@ -175,10 +172,10 @@ const CommentDialog = ({ open, setOpen }) => {
               </Dialog>
             </div>
             <div>
-              <span className='px-4 line-clamp-3'>{selectedPost?.caption}</span>
+              <span className='px-4 pb-2 line-clamp-3'>{selectedPost?.caption}</span>
               <hr />
             </div>
-            <div className='flex-1 overflow-y-auto px-4 pb-4 max-h-[65vh] no-scrollbar'>
+            <div className='grow overflow-y-auto px-4 pb-4 max-h-[70vh] no-scrollbar'>
               {
                 comment.map((comment) => <Comment key={comment._id} comment={comment} />)
               }

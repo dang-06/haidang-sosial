@@ -11,11 +11,11 @@ import { setPosts, setSelectedPost } from '@/redux/postSlice'
 import { Badge } from './ui/badge'
 import Avatar from '@mui/material/Avatar';
 import { ImageList, ImageListItem } from '@mui/material';
+import { formatDateHandler } from '@/lib/utils';
 
 const Post = ({ post }) => {
     const [text, setText] = useState("");
     const [open, setOpen] = useState(false);
-    const [formatDate, setFormatDate] = useState(false);
     const { user } = useSelector(store => store.auth);
     const { posts } = useSelector(store => store.post);
     const [liked, setLiked] = useState(post.likes.includes(user?._id) || false);
@@ -23,6 +23,9 @@ const Post = ({ post }) => {
     const [postLike, setPostLike] = useState(post.likes.length);
     const [comment, setComment] = useState(post.comments);
     const dispatch = useDispatch();
+    const [formatDate, setFormatDate] = useState("");
+
+    // const formatDate = formatDateHandler(post.createdAt);
 
     const changeEventHandler = (e) => {
         const inputText = e.target.value;
@@ -112,17 +115,9 @@ const Post = ({ post }) => {
     }
 
     useEffect(() => {
-        console.log(post);
-        console.log(comment);
         setComment(post.comments)
-        const date = new Date(post.updatedAt);
-
-        const hours = date.getUTCHours().toString().padStart(2, '0');
-        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-        const day = date.getUTCDate().toString().padStart(2, '0');
-        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-        const formattedDate = `${hours}:${minutes} ${day}-${month}`;
-        setFormatDate(formattedDate)
+        const formatted = formatDateHandler(post.createdAt);
+        setFormatDate(formatted);
     }, [post])
     return (
         <div className='mb-2 bg-white'>
@@ -140,7 +135,7 @@ const Post = ({ post }) => {
                         <DialogTrigger asChild>
                             <MoreHorizontal className='cursor-pointer' />
                         </DialogTrigger>
-                        <DialogContent className="flex flex-col items-center text-sm text-center">
+                        <DialogContent className="flex flex-col items-center text-sm text-center bg-white">
                             {
                                 post?.author?._id !== user?._id && <Button variant='ghost' className="cursor-pointer w-fit text-[#ED4956] font-bold">Unfollow</Button>
                             }
@@ -172,6 +167,10 @@ const Post = ({ post }) => {
                                         srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
                                         src={`${item}?w=164&h=164&fit=crop&auto=format`}
                                         loading="lazy"
+                                        onClick={() => {
+                                            dispatch(setSelectedPost(post));
+                                            setOpen(true);
+                                        }}
                                     />
                                 </ImageListItem>
                             ))}

@@ -6,6 +6,7 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import Reply from './Reply';
+import { formatDateHandler } from '@/lib/utils';
 
 const Comment = ({ comment }) => {
     const [openReply, setOpenReply] = useState(false);
@@ -15,12 +16,7 @@ const Comment = ({ comment }) => {
     const [commentReplies, setCommentReplies] = useState(comment?.replies.length);
     const [replies, setReplies] = useState(comment?.replies);
     const { posts } = useSelector(store => store.post);
-    const date = new Date(comment?.updatedAt);
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-    const formatDate = `${hours}:${minutes} ${day}-${month}`;
+    const formatDate = formatDateHandler(comment?.createdAt);
     const dispatch = useDispatch();
 
 
