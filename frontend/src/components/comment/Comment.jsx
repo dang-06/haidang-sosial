@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import Reply from './Reply';
 import { formatDateHandler } from '@/lib/utils';
+import { parseMentions } from '@/lib/utils/mentionParser';
 
 const Comment = ({ comment }) => {
     const [openReply, setOpenReply] = useState(false);
@@ -67,7 +68,7 @@ const Comment = ({ comment }) => {
             <div className='flex gap-3 items-center relative'>
                 <Avatar src={comment?.author?.profilePicture} />
                 <div className="flex flex-col">
-                    <span className='font-semibold text-base'>{comment?.author.username} <span className='font-normal text-base'>{comment?.text}</span></span>
+                    <span className='font-semibold text-base'>{comment?.author.username} <span className='font-normal text-base'>{parseMentions(comment?.text)}</span></span>
                     <div className="flex gap-4">
                         <span className='text-xs text-gray-400'>{formatDate}</span>
                         { commentLike > 0 && <span className='text-xs text-gray-600 font-medium cursor-pointer'>{commentLike} lượt thích</span>}

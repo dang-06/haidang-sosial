@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
+import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog'
 import { Bookmark, MessageCircle, MoreHorizontal, Send } from 'lucide-react'
-import { Button } from './ui/button'
+import { Button } from '../ui/button'
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-import CommentDialog from './comment/CommentDialog'
+import CommentDialog from '../comment/CommentDialog'
 import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { setPosts, setSelectedPost } from '@/redux/postSlice'
-import { Badge } from './ui/badge'
+import { Badge } from '../ui/badge'
 import Avatar from '@mui/material/Avatar';
 import { ImageList, ImageListItem } from '@mui/material';
 import { formatDateHandler } from '@/lib/utils';
+import { Female } from '@mui/icons-material';
 
 const Post = ({ post }) => {
     const [text, setText] = useState("");
@@ -128,7 +129,10 @@ const Post = ({ post }) => {
                         <div className='flex flex-col '>
                             <span className='font-semibold text-base'>{post.author?.username}</span>
                             {/* {user?._id === post.author._id && <Badge variant="secondary">Author</Badge>} */}
-                            <span className='text-xs text-gray-400'>{formatDate}</span>
+                            <div className="flex gap-2">
+                                <span className='text-xs text-gray-600'>{formatDate}</span>
+                                <span className='text-xs text-gray-600'>{post.author?.followers?.length || "0"} người theo dõi {post.author?.gender == "female" ? "cô ấy" : "anh ấy"}</span>
+                            </div>
                         </div>
                     </div>
                     <Dialog>
@@ -149,7 +153,7 @@ const Post = ({ post }) => {
                 </div>
 
                 <div className='pl-[60px]'>
-                    <span className='text-gray-600'>
+                    <span className='text-gray-900'>
                         {post.caption}
                     </span>
                     {post.image?.length == 1 ?
@@ -157,6 +161,10 @@ const Post = ({ post }) => {
                             className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden'
                             src={post.image}
                             alt="post_img"
+                            onClick={() => {
+                                dispatch(setSelectedPost(post));
+                                setOpen(true);
+                            }}
                         />
                         :
                         <ImageList sx={{ width: '100%', height: '100%' }} cols={4} rowHeight={170}>

@@ -13,6 +13,7 @@ import { setOnlineUsers } from './redux/chatSlice';
 import { setLikeNotification } from './redux/rtnSlice';
 import ProtectedRoutes from './components/ProtectedRoutes';
 import { setCurrentPage } from './redux/currentSlice';
+import { MentionProvider } from './lib/utils/MentionContext';
 
 const browserRouter = createBrowserRouter([
   {
@@ -87,7 +88,9 @@ function App() {
 
   return (
     <>
-      <RouterProvider router={browserRouter} />
+      <MentionProvider>
+        <RouterProvider router={browserRouter} />
+      </MentionProvider>
     </>
   );
 }

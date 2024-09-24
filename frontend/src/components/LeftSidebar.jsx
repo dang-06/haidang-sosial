@@ -59,7 +59,7 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
                     )
                 })}
                 <hr className='my-3' />
-                <div className='px-1 py-2'>
+                {/* <div className='px-1 py-2'>
                     <span className='py-2 text-lg font-medium text-gray-800'>Nhóm của bạn</span>
 
                 </div>
@@ -72,7 +72,7 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
                             </span>
                         </div>
                     )
-                })}
+                })} */}
             </div>
         </>
     )

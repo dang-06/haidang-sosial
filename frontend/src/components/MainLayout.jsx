@@ -4,6 +4,7 @@ import LeftSidebar from './LeftSidebar'
 import Navbar from './NavBar.jsx'
 import { useDispatch } from 'react-redux'
 import { setIsSidebarOpen } from '@/redux/currentSlice'
+import { MentionProvider } from '../lib/utils/MentionContext'
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -49,7 +50,9 @@ const MainLayout = () => {
         <div className={`w-[17%] sticky top-[60px]  mt-2 mr-2 bg-white rounded border border-gray-100 shadow-sm md:pb-[65px] md:p-1 duration-[300ms] transition-all h-[100vh]`}>
           <LeftSidebar sidebarOpen={sidebarOpen} toggleSidebar={updateSideBarState} />
         </div>
-        <Outlet/>
+        <MentionProvider>
+          <Outlet/>
+        </MentionProvider>
       </main>
     </div>
   )

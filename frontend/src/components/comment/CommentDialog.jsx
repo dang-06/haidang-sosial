@@ -14,6 +14,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { formatDateHandler } from '@/lib/utils'
 import { sendComment } from '@/api/apiService'
+import TriggersInput from '../ui/StriggersInput'
 
 const CommentDialog = ({ open, setOpen }) => {
   const [text, setText] = useState("");
@@ -76,17 +77,11 @@ const CommentDialog = ({ open, setOpen }) => {
     }
   }, [currentIndex, img, selectedPost])
 
-  const sendMessageHandler = async () => {
+  const sendMessageHandler = async (value) => {
 
     try {
-      // const res = await axios.post(`${import.meta.env.VITE_API_URI}/post/${selectedPost?._id}/comment`, { text }, {
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   withCredentials: true
-      // });
 
-      const res = await sendComment(selectedPost?._id, text)
+      const res = await sendComment(selectedPost?._id, value)
 
       if (res.data.success) {
         const updatedCommentData = [...comment, res.data.comment];
@@ -182,14 +177,15 @@ const CommentDialog = ({ open, setOpen }) => {
             </div>
             <div className='p-4'>
               <div className='flex items-center gap-2'>
-                <input
+                {/* <input
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && text.trim()) {
                       sendMessageHandler();
                     }
                   }}
-                  type="text" value={text} onChange={changeEventHandler} placeholder='Add a comment...' className='w-full outline-none border text-sm border-gray-300 p-2 relative rounded' />
-                <Button className="absolute right-5 border-none h-5 text-maincolor hover:bg-white" disabled={!text.trim()} onClick={sendMessageHandler} variant="outline">Đăng</Button>
+                  type="text" value={text} onChange={changeEventHandler} placeholder='Add a comment...' className='w-full outline-none border text-sm border-gray-300 p-2 relative rounded' /> */}
+                <TriggersInput sendMessageHandler={sendMessageHandler}/>
+                {/* <Button className="absolute right-5 border-none h-5 text-maincolor hover:bg-white" disabled={!text.trim()} onClick={sendMessageHandler} variant="outline">Đăng</Button> */}
               </div>
             </div>
           </div>

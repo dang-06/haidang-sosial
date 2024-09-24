@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { setAuthUser } from '@/redux/authSlice';
 import { setPosts, setSelectedPost } from '@/redux/postSlice';
-import CreatePost from './CreatePost';
+import CreatePost from './create-post/CreatePost';
 
 
 

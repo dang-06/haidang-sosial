@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { Modal, Box, Avatar } from '@mui/material';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { Textarea } from './ui/textarea';
-import { Button } from './ui/button';
+import { Textarea } from '../ui/textarea';
+import { Button } from '../ui/button';
 import { readFileAsDataURL } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,6 +11,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setPosts } from '@/redux/postSlice';
 import { ImageList, ImageListItem } from '@mui/material';
 import { AiOutlinePicture } from "react-icons/ai";
+import TriggersInput from '../ui/StriggersInput';
+import TriggersInputPost from '../ui/StriggersInputPost';
 
 const style = {
   position: 'absolute',
@@ -89,18 +91,22 @@ const CreatePost = ({ open, setOpen }) => {
         <VisuallyHidden>Your Title Here</VisuallyHidden>
         <h2 className='text-center font-semibold'>Đăng bài</h2>
         <div className='flex gap-3 items-center'>
-          <Avatar src={user?.profilePicture} alt="img"/>
+          <Avatar src={user?.profilePicture} alt="img" />
           <div>
             <h1 className='font-semibold text-xs'>{user?.username}</h1>
             <span className='text-gray-400 text-xs'>{user?.bio || 'Người mới...'}</span>
           </div>
         </div>
-        <Textarea value={caption} onChange={(e) => setCaption(e.target.value)} className="focus-visible:ring-transparent border-none" placeholder="Bạn đang có điều gì muốn chia sẻ với mọi người?" />
-        <ImageList sx={{ width: "100%", height: "auto" }} cols={4}>
+        {/* <Textarea value={caption} onChange={(e) => setCaption(e.target.value)} className="focus-visible:ring-transparent border-none" placeholder="Bạn đang có điều gì muốn chia sẻ với mọi người?" /> */}
+        <TriggersInputPost setText={setCaption} />
+        <ImageList
+          sx={{ width: "100%", height: "auto", maxHeight: "60vh" }}
+          cols={imagePreview.length === 9 ? 3 : 4}
+        >
           {imagePreview?.map((img, index) => (
             <ImageListItem key={index}>
               <img
-                className='object-cover h-full w-full rounded-md'
+                className='object-contain h-auto w-auto rounded-md'
                 src={img}
                 alt={`preview_img_${index}`}
                 loading="lazy"

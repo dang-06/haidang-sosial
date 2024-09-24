@@ -258,7 +258,7 @@ export const editProfile = async (req, res) => {
 };
 export const getSuggestedUsers = async (req, res) => {
     try {
-        const suggestedUsers = await User.find({ _id: { $ne: req.id }, active: { $ne: false} }).select("-password");
+        const suggestedUsers = await User.find({ _id: { $ne: req.id }, active: { $ne: false } }).select("-password");
         if (!suggestedUsers) {
             return res.status(400).json({
                 message: 'Currently do not have any users',
@@ -274,7 +274,7 @@ export const getSuggestedUsers = async (req, res) => {
 };
 export const getAllUser = async (req, res) => {
     try {
-        const username= req.query.username || '';
+        const username = req.query.username || '';
         let limit = parseInt(req.query.limit, 10);
 
         if (!limit || isNaN(limit)) {
@@ -285,24 +285,24 @@ export const getAllUser = async (req, res) => {
 
         if (!username) {
             return res.status(200).json({
-                success: true,  
+                success: true,
                 users: []
             });
         };
         const Users = await User.find({
-            _id: { $ne: req.id },  
-            active: { $ne: false }, 
-            username: { $regex: username, $options: 'i' }  
-        }).select("-password").limit(limit);           
+            _id: { $ne: req.id },
+            active: { $ne: false },
+            username: { $regex: username, $options: 'i' }
+        }).select("-password").limit(limit);
 
         if (!Users || Users.length === 0) {
             return res.status(200).json({
-                success: true,  
+                success: true,
                 users: []
             });
         };
         return res.status(200).json({
-            success: true,  
+            success: true,
             users: Users
         });
     } catch (error) {
@@ -310,6 +310,36 @@ export const getAllUser = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server Error'
+        });
+    }
+};
+export const getUserDetail = async (req, res) => {
+    try {
+        const username = req.body.username || ''
+
+        if (!username) {
+            return res.status(400).json({
+                message: 'username is required!',
+                success: false
+            })
+        }
+
+        const user = await User.findOne({username}).select("-password")
+        if (!user) {
+            return res.status(404).json({
+                message: 'user not found!',
+                success: false
+            })
+        }
+        return res.status(200).json({
+            user,
+            success: true
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: 'Internal server error!',
+            success: false
         });
     }
 };
