@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { forwardRef, useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog'
 import { Bookmark, MessageCircle, MoreHorizontal, Send } from 'lucide-react'
 import { Button } from '../ui/button'
@@ -13,8 +13,11 @@ import Avatar from '@mui/material/Avatar';
 import { ImageList, ImageListItem } from '@mui/material';
 import { formatDateHandler } from '@/lib/utils';
 import { Female } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
+import { parseMentions } from '@/lib/utils/mentionParser';
 
-const Post = ({ post }) => {
+const Post = forwardRef((props, ref) => {
+    const { post } = props;
     const [text, setText] = useState("");
     const [open, setOpen] = useState(false);
     const { user } = useSelector(store => store.auth);
@@ -116,18 +119,22 @@ const Post = ({ post }) => {
     }
 
     useEffect(() => {
-        setComment(post.comments)
+        setComment(props.post.comments)
         const formatted = formatDateHandler(post.createdAt);
         setFormatDate(formatted);
-    }, [post])
+    }, [post, props])
     return (
-        <div className='mb-2 bg-white'>
+        <div ref={ref} className='mb-2 bg-white'>
             <div className='w-full mx-auto transition-all duration-[300ms] pt-4 px-5'>
                 <div className='flex items-center justify-between mb-1 px-2 md:px-0'>
                     <div className='flex items-center gap-2'>
-                        <Avatar sx={{ width: 50, height: 50 }} alt="post_image" src={post.author?.profilePicture} />
+                        <Link to={`/profile/${post.author?._id}`}>
+                            <Avatar sx={{ width: 50, height: 50 }} alt="post_image" src={post.author?.profilePicture} />
+                        </Link>
                         <div className='flex flex-col '>
-                            <span className='font-semibold text-base'>{post.author?.username}</span>
+                            <Link to={`/profile/${post.author?._id}`}>
+                                <span className='font-semibold text-base'>{post.author?.username}</span>
+                            </Link>
                             {/* {user?._id === post.author._id && <Badge variant="secondary">Author</Badge>} */}
                             <div className="flex gap-2">
                                 <span className='text-xs text-gray-600'>{formatDate}</span>
@@ -154,11 +161,11 @@ const Post = ({ post }) => {
 
                 <div className='pl-[60px]'>
                     <span className='text-gray-900'>
-                        {post.caption}
+                        {parseMentions(post.caption)}
                     </span>
                     {post.image?.length == 1 ?
                         <img
-                            className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden'
+                            className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden cursor-pointer'
                             src={post.image}
                             alt="post_img"
                             onClick={() => {
@@ -171,7 +178,7 @@ const Post = ({ post }) => {
                             {post.image?.map((item, index) => (
                                 <ImageListItem key={index}>
                                     <img
-                                        className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden'
+                                        className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden cursor-pointer'
                                         srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
                                         src={`${item}?w=164&h=164&fit=crop&auto=format`}
                                         loading="lazy"
@@ -215,7 +222,7 @@ const Post = ({ post }) => {
                 </div>
                 <hr width="100%" size="10px" align="center" className='my-5' /> */}
             </div>
-            <div className='flex items-center justify-between px-16 py-3 text-gray-600'>
+            <div className='flex items-center justify-between px-20 py-3 text-gray-600 text-sm'>
                 <div className='flex items-center gap-2'>
                     {
                         liked ?
@@ -236,16 +243,28 @@ const Post = ({ post }) => {
                     <MessageCircle size={'20'} onClick={() => {
                         dispatch(setSelectedPost(post));
                         setOpen(true);
-                    }} className='cursor-pointer hover:text-maincolor' />
-                    <span className='text-gray-600'>{comment.length}</span>
+                    }} className='cursor-pointer  hover:text-maincolor' />
+                    <span className=''>{comment?.length}</span>
                 </div>
-                <Send size={'20'} className='cursor-pointer hover:text-maincolor' />
+                <div className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor '>
+                    <Send size={'20'} className='cursor-pointer ' />
+                    <span className=' hover:text-maincolor'>Chia sẻ</span>
+                </div>
                 {
-                    marked ? <Bookmark size={'20'} onClick={bookmarkHandler} className='cursor-pointer text-yellow-600 transition-all duration-300 ease-in-out transform' /> : <Bookmark onClick={bookmarkHandler} className='cursor-pointer hover:text-gray-600 transition-all duration-300 ease-in-out transform hover:text-maincolor' />
+                    marked ?
+                        <div className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor'>
+                            <Bookmark size={'20'} onClick={bookmarkHandler} className='cursor-pointer text-yellow-600 transition-all duration-300 ease-in-out transform' />
+                            <span className=' hover:text-maincolor'>Lưu</span>
+                        </div>
+                        :
+                        <div size={'20'} className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor'>
+                            <Bookmark onClick={bookmarkHandler} className='cursor-pointer transition-all duration-300 ease-in-out transform hover:text-maincolor' />
+                            <span className=' hover:text-maincolor'>Lưu</span>
+                        </div>
                 }
             </div>
         </div>
     )
-}
+})
 
 export default Post

@@ -1,10 +1,25 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
+import { followOrUnfollow } from '@/api/apiService';
+import { setSuggestedUsers } from '@/redux/authSlice';
 
 const SuggestedUsers = () => {
     const { suggestedUsers } = useSelector(store => store.auth);
+    const [followed, setFollowed] = useState([])
+    const dispatch = useDispatch()
+
+    const followHandle = async (userId) => {
+        try {
+            setFollowed((prev) => [...prev,userId])
+            const res = await followOrUnfollow(userId)
+        } catch (error) {
+            console.log(error);
+            setFollowed((prev) => prev.filter((_id) => _id != userId))
+        }
+    }
+
     return (
         <div className='rounded-2xl px-4'>
             <div className='flex items-center justify-between text-sm'>
@@ -28,7 +43,11 @@ const SuggestedUsers = () => {
                                     <span className='text-gray-400 text-xs line-clamp-1'>{user?.bio || 'Người mới...'}</span>
                                 </div>
                             </div>
-                            <span className='text-maincolor text-xs font-bold cursor-pointer hover:text-opacity-50'>Theo dõi</span>
+                            { followed.includes(user?._id) ? 
+                            <span className='text-gray-600 text-xs font-bold cursor-pointer'>Đã theo dõi</span>
+                            :
+                            <span onClick={() => followHandle(user?._id)} className='text-maincolor text-xs font-bold cursor-pointer hover:text-opacity-50'>Theo dõi</span>
+                            }
                         </div>
                     )
                 })

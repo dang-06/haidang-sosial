@@ -44,7 +44,11 @@ export const addNewPost = async (req, res) => {
 };
 export const getAllPost = async (req, res) => {
     try {
+        const limit = 5;
+        const page = parseInt(req.query.page) || 1;
+
         const posts = await Post.find().sort({ createdAt: -1 })
+            .limit(limit * page)
             .populate({ path: 'author', select: 'username profilePicture followers gender' })
             .populate({
                 path: 'comments',
@@ -70,6 +74,11 @@ export const getAllPost = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: 'Error retrieving posts',
+            error: error.message,
+            success: false
+        });
     }
 };
 export const getUserPost = async (req, res) => {
@@ -101,7 +110,7 @@ export const likePost = async (req, res) => {
         const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ message: 'Post not found', success: false });
 
-        await post.updateOne({ $addToSet: { likes: userDoAction } });
+        await post.updateOne({ $addToSet: { likes: userDoAction } }, { $inc: { interactions: 2 } });
         await post.save();
 
         const user = await User.findById(userDoAction).select('username profilePicture createdAt');
@@ -122,6 +131,7 @@ export const likePost = async (req, res) => {
 
         return res.status(200).json({ message: 'Post liked', success: true });
     } catch (error) {
+        console.log(error);
 
     }
 }
@@ -132,7 +142,7 @@ export const dislikePost = async (req, res) => {
         const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ message: 'Post not found', success: false });
 
-        await post.updateOne({ $pull: { likes: userDoAction } });
+        await post.updateOne({ $pull: { likes: userDoAction } }, { $inc: { interactions: -2 } });
         await post.save();
 
         const user = await User.findById(userDoAction).select('username profilePicture');
@@ -179,6 +189,7 @@ export const addComment = async (req, res) => {
         });
 
         post.comments.push(comment._id);
+        post.interactions += 2;
         await post.save();
 
         return res.status(201).json({
@@ -334,6 +345,18 @@ export const replyComment = async (req, res) => {
         }
         comment.replies.push(replyComment);
         await comment.save()
+
+        await comment.populate([
+            {
+                path: 'author',
+                select: "username profilePicture"
+            },
+            {
+                path: 'replies.author',
+                select: "username profilePicture"
+            }
+        ]
+        );
 
         return res.status(201).json({
             message: 'reply comment added',

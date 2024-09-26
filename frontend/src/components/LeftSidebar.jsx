@@ -1,7 +1,7 @@
 import { Heart, Home, InboxIcon, LogOut, MailIcon, MessageCircle, PlusSquare, Search, SendIcon, TrendingUp } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { LuDot } from 'react-icons/lu'
 import { FaRegSave, FaRegShareSquare, FaRegStar } from 'react-icons/fa'
@@ -14,6 +14,7 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
     const dispatch = useDispatch();
     const [open, setOpen] = useState(false);
     const { currentPage } = useSelector(store => store.current)
+    const { text } = useParams()
 
     const location = useLocation();
     const path = location.pathname;
@@ -21,18 +22,18 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
         setOpen(!open);
     };
 
-    useEffect(() => {
-        console.log(userProfile);
+    // useEffect(() => {
+    //     console.log(userProfile);
 
-    })
+    // })
 
 
     const sidebarItems = [
-        { icon: <FaRegStar />, text: "Nhiều tương tác" },
-        { icon: <MdOutlineWatchLater />, text: "Mới nhất" },
-        { icon: <FaRegSave />, text: "Đã lưu" },
-        { icon: <FaRegShareSquare />, text: "Chia sẻ lại" },
-    ]
+        { icon: <FaRegStar />, text: "Nhiều tương tác", enText: "" },
+        { icon: <MdOutlineWatchLater />, text: "Mới nhất", enText: "newest" },
+        { icon: <FaRegSave />, text: "Đã lưu", enText: "saved" },
+        { icon: <FaRegShareSquare />, text: "Chia sẻ lại", enText: "re-share" },
+    ];
 
     const group = [
         { img: userProfile?.profilePicture, text: "Gym tại nhà" },
@@ -40,6 +41,14 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
         { img: userProfile?.profilePicture, text: "Công đồng lập trình Web Việt Nam" },
         { img: userProfile?.profilePicture, text: "Tìm việc làm IT" },
     ]
+
+    const leftSidebarHandler = (textType) => {
+        if (textType === '') {
+            navigate("/");
+        } else {
+            navigate(`/${textType}`);
+        }
+    }
 
 
     return (
@@ -49,8 +58,12 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
                     <span className='py-2 text-xl font-semibold'>Dành cho bạn</span>
                 </div>
                 {sidebarItems.map((item, index) => {
+                    let isActive = item.enText === text;
+                    if (item.enText === '' && !text) isActive = true  
                     return (
-                        <div key={index} className='cursor-pointer rounded py-2 pr-1 pl-2 flex items-center gap-3 text-lg text-gray-800 hover:bg-slate-200 hover:bg-opacity-50'>
+                        <div key={index}
+                            onClick={() => leftSidebarHandler(item.enText)}
+                            className={`${isActive ? "text-maincolor" : "text-gray-800"} cursor-pointer rounded py-2 pr-1 pl-2 flex items-center gap-3 text-lg hover:bg-slate-200 hover:bg-opacity-50`}>
                             {item.icon}
                             <span className="truncate max-w-[150px] text-sm">
                                 {item.text}

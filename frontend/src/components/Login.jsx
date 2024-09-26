@@ -7,6 +7,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAuthUser } from '@/redux/authSlice';
+import { getCookie } from '@/lib/utils/cookies';
+import { getLoginStatus } from '@/api/apiService';
 
 const Login = () => {
     const [input, setInput] = useState({
@@ -50,9 +52,15 @@ const Login = () => {
     }
 
     useEffect(()=>{
-        if(user){
-            navigate("/");
+        const handleLoginStatus = async () => {
+            try {
+                const res = await getLoginStatus()
+                if (res.success) navigate("/")
+            } catch (error) {
+                console.log(error);
+            }
         }
+        handleLoginStatus()
     },[])
     return (
         <div className='flex items-center w-screen h-screen justify-center'>

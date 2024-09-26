@@ -21,8 +21,6 @@ const Reply = ({ reply }) => {
         setReplyLike(reply.likes.length)
         setLiked(reply?.likes?.includes(user?._id) || false);
         setReplyData(reply);
-        console.log("reply");
-        console.log(reply);
 
     }, [reply]);
 

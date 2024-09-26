@@ -208,6 +208,17 @@ export const logout = async (_, res) => {
         console.log(error);
     }
 };
+export const getLoginStatus = async (req,res) => {
+    const id = req.id
+    if (!id) return res.status(401).json({
+        message: 'User not authenticated',
+        success: false,
+    })
+    return res.status(200).json({
+        message: 'User authenticated',
+        success: true,
+    })
+}
 export const getProfile = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -258,7 +269,7 @@ export const editProfile = async (req, res) => {
 };
 export const getSuggestedUsers = async (req, res) => {
     try {
-        const suggestedUsers = await User.find({ _id: { $ne: req.id }, active: { $ne: false } }).select("-password");
+        const suggestedUsers = await User.find({ _id: { $ne: req.id }, active: { $ne: false }, followers: { $nin: req.id } }).select("-password");
         if (!suggestedUsers) {
             return res.status(400).json({
                 message: 'Currently do not have any users',
@@ -275,25 +286,44 @@ export const getSuggestedUsers = async (req, res) => {
 export const getAllUser = async (req, res) => {
     try {
         const username = req.query.username || '';
-        let limit = parseInt(req.query.limit, 10);
-
-        if (!limit || isNaN(limit)) {
-            return res.status(400).json({
-                message: 'Limit is required and must be a valid number',
-            });
-        }
+        let limit = parseInt(req.query.limit, 10) || 7;
 
         if (!username) {
+            let Users = await User.find({
+                _id: { $ne: req.id },
+                active: { $ne: false },
+                followers: { $in: req.id }
+            }).select("-password").limit(limit);
+            if (Users.length < limit) {
+                const usersNotFollowed = await User.find({
+                    _id: { $ne: req.id },
+                    active: { $ne: false },
+                    followers: { $nin: req.id }
+                }).select("-password").limit(limit - Users.length);
+                Users = [...Users, ...usersNotFollowed]
+            }
             return res.status(200).json({
                 success: true,
-                users: []
+                users: Users
             });
         };
-        const Users = await User.find({
+        let Users = await User.find({
             _id: { $ne: req.id },
             active: { $ne: false },
-            username: { $regex: username, $options: 'i' }
+            username: { $regex: username, $options: 'i' },
+            followers: { $in: req.id },
         }).select("-password").limit(limit);
+
+        if (Users.length < limit) {
+            const usersNotFollowed = await User.find({
+                _id: { $ne: req.id },
+                active: { $ne: false },
+                username: { $regex: username, $options: 'i' },
+                followers: { $nin: req.id }
+            }).select("-password").limit(limit - Users.length);
+            Users = [...Users, ...usersNotFollowed]
+        }
+        console.log(Users);
 
         if (!Users || Users.length === 0) {
             return res.status(200).json({
@@ -324,7 +354,7 @@ export const getUserDetail = async (req, res) => {
             })
         }
 
-        const user = await User.findOne({username}).select("-password")
+        const user = await User.findOne({ username }).select("-password")
         if (!user) {
             return res.status(404).json({
                 message: 'user not found!',
@@ -345,17 +375,17 @@ export const getUserDetail = async (req, res) => {
 };
 export const followOrUnfollow = async (req, res) => {
     try {
-        const followKrneWala = req.id;
-        const jiskoFollowKrunga = req.params.id;
-        if (followKrneWala === jiskoFollowKrunga) {
+        const userFollowing = req.id;
+        const userIsFollowed = req.params.id;
+        if (userFollowing === userIsFollowed) {
             return res.status(400).json({
                 message: 'You cannot follow/unfollow yourself',
                 success: false
             });
         }
 
-        const user = await User.findById(followKrneWala);
-        const targetUser = await User.findById(jiskoFollowKrunga);
+        const user = await User.findById(userFollowing);
+        const targetUser = await User.findById(userIsFollowed);
 
         if (!user || !targetUser) {
             return res.status(400).json({
@@ -363,17 +393,17 @@ export const followOrUnfollow = async (req, res) => {
                 success: false
             });
         }
-        const isFollowing = user.following.includes(jiskoFollowKrunga);
+        const isFollowing = user.following.includes(userIsFollowed);
         if (isFollowing) {
             await Promise.all([
-                User.updateOne({ _id: followKrneWala }, { $pull: { following: jiskoFollowKrunga } }),
-                User.updateOne({ _id: jiskoFollowKrunga }, { $pull: { followers: followKrneWala } }),
+                User.updateOne({ _id: userFollowing }, { $pull: { following: userIsFollowed } }),
+                User.updateOne({ _id: userIsFollowed }, { $pull: { followers: userFollowing } }),
             ])
             return res.status(200).json({ message: 'Unfollowed successfully', success: true });
         } else {
             await Promise.all([
-                User.updateOne({ _id: followKrneWala }, { $push: { following: jiskoFollowKrunga } }),
-                User.updateOne({ _id: jiskoFollowKrunga }, { $push: { followers: followKrneWala } }),
+                User.updateOne({ _id: userFollowing }, { $push: { following: userIsFollowed } }),
+                User.updateOne({ _id: userIsFollowed }, { $push: { followers: userFollowing } }),
             ])
             return res.status(200).json({ message: 'followed successfully', success: true });
         }

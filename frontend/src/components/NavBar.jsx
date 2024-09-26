@@ -66,8 +66,16 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
       page = 'Thông báo';
     } else if (path === `/profile/${user._id}`) {
       page = 'Trang cá nhân';
+    } else if (path === '/newest') {
+      page = 'Trang chủ';
+    } else if (path === '/saved') {
+      page = 'Trang chủ';
+    } else if (path === '/re-share') {
+      page = 'Trang chủ';
     }
     dispatch(setCurrentPage(page));
+
+    // if(!user) navigate('/login')
   }, [dispatch, path]);
   const options = [
     user, user, user, user, user, user, user
@@ -78,8 +86,8 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
     { icon: <PiVideoLight className='h-7 w-7' />, iconActive: <PiVideoDuotone className='text-maincolor h-7 w-7' />, text: "Video" },
     { icon: <IoIosNotificationsOutline className='h-7 w-7' />, iconActive: <IoMdNotifications className='text-maincolor h-7 w-7' />, text: "Thông báo" },
     {
-      icon: <Tooltip title="Account"><AVT src={user.profilePicture} sx={{ width: 27, height: 27 }}></AVT></Tooltip>,
-      iconActive: <Tooltip title="Account"><AVT className='text-maincolor' src={user.profilePicture} sx={{ width: 30, height: 30 }}></AVT></Tooltip>, text: "Trang cá nhân"
+      icon: <Tooltip title="Account"><AVT src={user?.profilePicture} sx={{ width: 27, height: 27 }}></AVT></Tooltip>,
+      iconActive: <Tooltip title="Account"><AVT className='text-maincolor' src={user?.profilePicture} sx={{ width: 30, height: 30 }}></AVT></Tooltip>, text: "Trang cá nhân"
     },
   ]
   const sidebarHandler = (textType) => {
@@ -121,9 +129,9 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
               sidebarItems.map((item, index) => {
                 const isActive = currentPage === item.text;
                 return (
-                  <>
+                  <div key={index}>
                     {isActive ? (
-                      <div key={index} className='flex-col'>
+                      <div className='flex-col'>
                         <div
                           onClick={() => sidebarHandler(item.text)}
                           className="relative flex items-center gap-4 relative cursor-pointer rounded-lg px-6 py-2 my-1 hover:bg-gray-200 duration-[300ms]"
@@ -142,7 +150,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
                         {item.icon}
                       </div>
                     )}
-                  </>
+                  </div>
 
                 )
               })
@@ -154,7 +162,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
             <div className="p-1 rounded-full h-7 w-7 bg-slate-200 flex items-center justify-center hover:bg-slate-300 mr-7"><IoIosSettings className='h-6 w-6' /></div>
             <div className="p-1 rounded-full h-7 w-7 bg-slate-200 flex items-center justify-center hover:bg-slate-300 mr-7" onClick={changeMode}><MdNightsStay className='h-6 w-6' /></div>
             <div
-              onClick={()=>{
+              onClick={() => {
                 setOpenCreatePost(true)
               }}
               className="p-2 rounded-full h-7 w-7 flex items-center justify-center mr-7 text-white bg-maincolor hover:bg-maincolor/70"><LuPenSquare className='h-6 w-6' /></div>
@@ -165,7 +173,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
           <span className='rounded-full bg-slate-200 py-1 px-2 hover:bg-slate-300 cursor-pointer text-xs' onClick={logoutHandler}>Đăng xuất</span>
         </div>
       </div>
-      <CreatePost open={openCratePost} setOpen={setOpenCreatePost}/>
+      <CreatePost open={openCratePost} setOpen={setOpenCreatePost} />
     </div>
   )
 }

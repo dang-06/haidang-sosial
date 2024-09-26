@@ -19,7 +19,7 @@ import TriggersInput from '../ui/StriggersInput'
 const CommentDialog = ({ open, setOpen }) => {
   const [text, setText] = useState("");
   const { selectedPost, posts } = useSelector(store => store.post);
-  const [comment, setComment] = useState([]);
+  const [comment, setComment] = useState(selectedPost?.comments || []);
   const dispatch = useDispatch();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [img, setImg] = useState(selectedPost?.image?.[0] || '');
@@ -29,16 +29,14 @@ const CommentDialog = ({ open, setOpen }) => {
 
 
 
-
-
   useEffect(() => {
     if (selectedPost) {
-      setComment(selectedPost.comments);
       setImg(selectedPost.image[0]);
       setComment(selectedPost.comments);
       setCurrentIndex(0);
       setIsFirst(true)
       setIsLast(selectedPost.image.length === 1);
+      
     }
   }, [selectedPost]);
 
@@ -172,7 +170,7 @@ const CommentDialog = ({ open, setOpen }) => {
             </div>
             <div className='grow overflow-y-auto px-4 pb-4 max-h-[70vh] no-scrollbar'>
               {
-                comment.map((comment) => <Comment key={comment._id} comment={comment} />)
+                comment?.map((comment) => <Comment key={comment._id} commentProp={comment}/>)
               }
             </div>
             <div className='p-4'>

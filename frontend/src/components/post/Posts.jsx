@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Post from './Post'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import * as Select from '@radix-ui/react-select';
 import { FaChevronDown } from "react-icons/fa";
+import { getPost } from '@/api/apiService';
+import { setPosts } from "@/redux/postSlice";
+import { Loader2 } from 'lucide-react';
 
 const CustomSelect = ({ selectedSort, onChange }) => {
 
@@ -33,10 +36,46 @@ const CustomSelect = ({ selectedSort, onChange }) => {
 const Posts = () => {
   const { posts } = useSelector(store => store.post);
   const [selectedSort, setSelectedSort] = useState('best');
+  const [renderPosts, setRenderPosts] = useState(posts || [])
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch()
+  const observer = useRef()
+  const lastElementRef = (node) => {
+    if (loading) return
+    if (observer.current) observer.current.disconnect()
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setPage((prevPage) => prevPage + 1)
+      }
+    })
+    if (node) observer.current.observe(node)
+  }
 
   useEffect(() => {
-    console.log(posts);
-  }, [posts]);
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const res = await getPost(page);
+        if (res.success) {
+          setRenderPosts(res.posts);
+          dispatch(setPosts(res.posts));
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [page]);
+
+  useEffect(() => {
+    if (posts) {
+      setRenderPosts(posts);
+    }
+  }, [posts])
 
   const handleSortChange = (value) => {
     setSelectedSort(value);
@@ -48,8 +87,18 @@ const Posts = () => {
       </div>
       <hr width="100%" size="10px" align="center" className='mb-3 mt-1' /> */}
       {
-        posts.map((post) => <Post key={post._id} post={post} />)
+        renderPosts?.map((post, index) => {
+          if (posts.length == index + 1) {
+            return (<Post ref={lastElementRef} key={post._id} post={post} />)
+          } else return <Post key={post._id} post={post} />
+        })
       }
+      {/* <button onClick={() => setPage(page + 1)}>
+        Load More
+      </button> */}
+      <div className="flex w-full items-center justify-center rounded-full">
+        <Loader2 className='h-8 w-8 animate-spin text-maincolor' />
+      </div>
     </div>
   )
 }

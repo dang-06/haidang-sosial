@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 // This function parses the mentions in the text
 export const parseMentions = (text) => {
-    const parts = text.split(/(@\w+)/);
-    return parts.map((part, index) => {
+    const parts = text.split(/(@[\w.-]+|#\w+|\s+)/g);
+    return parts?.map((part, index) => {
         if (part.startsWith('@')) {
             const username = part.slice(1);
             return (

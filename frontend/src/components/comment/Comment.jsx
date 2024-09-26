@@ -8,15 +8,18 @@ import { toast } from 'sonner';
 import Reply from './Reply';
 import { formatDateHandler } from '@/lib/utils';
 import { parseMentions } from '@/lib/utils/mentionParser';
+import TriggersInput from '../ui/StriggersInput';
+import { replyComment } from '@/api/apiService';
 
-const Comment = ({ comment }) => {
+const Comment = ({ commentProp }) => {
     const [openReply, setOpenReply] = useState(false);
     const { user } = useSelector(store => store.auth);
+    const [comment, setComment] = useState(commentProp);
     const [liked, setLiked] = useState(comment?.likes?.includes(user?._id) || false);
     const [commentLike, setCommentLike] = useState(comment.likes.length);
     const [commentReplies, setCommentReplies] = useState(comment?.replies.length);
     const [replies, setReplies] = useState(comment?.replies);
-    const { posts } = useSelector(store => store.post);
+    const { posts, selectedPost } = useSelector(store => store.post);
     const formatDate = formatDateHandler(comment?.createdAt);
     const dispatch = useDispatch();
 
@@ -26,7 +29,33 @@ const Comment = ({ comment }) => {
         setLiked(comment?.likes?.includes(user?._id) || false);
         setCommentReplies(comment?.replies.length)
         setReplies(comment?.replies)
-    }, [comment]);
+    }, [posts,comment]);
+
+    useEffect(() => {
+        setComment(commentProp);
+    }, [commentProp]);
+
+    const sendMessageHandler = async (value) => {
+        try {
+            const res = await replyComment(comment._id, value)
+            if (res.success) {
+                setComment(res.comment);
+                const updatedPostData = posts.map(p => {
+                    if (p._id == selectedPost._id){
+                        return {...p, comments: p.comments.map(c => {
+                            if (comment._id == c._id) return res.comment
+                            else return c
+                        })}
+                    } else return p
+                }
+                );
+                dispatch(setPosts(updatedPostData));
+                toast.success(res.message);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     const likeOrDislikeHandler = async () => {
         try {
@@ -71,8 +100,8 @@ const Comment = ({ comment }) => {
                     <span className='font-semibold text-base'>{comment?.author.username} <span className='font-normal text-base'>{parseMentions(comment?.text)}</span></span>
                     <div className="flex gap-4">
                         <span className='text-xs text-gray-400'>{formatDate}</span>
-                        { commentLike > 0 && <span className='text-xs text-gray-600 font-medium cursor-pointer'>{commentLike} lượt thích</span>}
-                        <span className='text-xs text-gray-600 font-medium cursor-pointer'>Trả lời</span>
+                        {commentLike > 0 && <span className='text-xs text-gray-600 font-medium cursor-pointer'>{commentLike} lượt thích</span>}
+                        <span onClick={() => { setOpenReply((prev) => !prev) }} className='text-xs text-gray-600 font-medium cursor-pointer hover:text-maincolor hover:underline'>Trả lời</span>
                     </div>
                 </div>
                 <div className='flex items-center absolute right-3'>
@@ -93,14 +122,19 @@ const Comment = ({ comment }) => {
             </div>
             {commentReplies > 0 && <div className="flex gap-2 items-center pl-14 pt-3">
                 <hr className='w-8' />
-                {openReply ? <span className='text-xs text-gray-600 font-medium cursor-pointer' onClick={()=>{setOpenReply(false)}}>Ẩn câu trả lời</span>
-                    : <span className='text-xs text-gray-600 font-medium cursor-pointer' onClick={()=>{setOpenReply(true)}}>Xem ({commentReplies}) câu trả lời</span>
+                {openReply ? <span className='text-xs text-gray-600 font-medium cursor-pointer' onClick={() => { setOpenReply(false) }}>Ẩn câu trả lời</span>
+                    : <span className='text-xs text-gray-600 font-medium cursor-pointer' onClick={() => { setOpenReply(true) }}>Xem ({commentReplies}) câu trả lời</span>
                 }
             </div>}
             {openReply &&
-                replies.map(r => <Reply key={r._id} reply={r} />)
+                <div>
+                    {replies.map(r => <Reply key={r._id} reply={r} />)}
+                    < div className="my-2 pl-14">
+                        <TriggersInput sendMessageHandler={sendMessageHandler} />
+                    </div>
+                </div>
             }
-        </div>
+        </div >
     )
 }
 
