@@ -6,32 +6,9 @@ import { FaChevronDown } from "react-icons/fa";
 import { getPost } from '@/api/apiService';
 import { setPosts } from "@/redux/postSlice";
 import { Loader2 } from 'lucide-react';
-
-const CustomSelect = ({ selectedSort, onChange }) => {
-
-  const sortOptions = {
-    best: 'Best',
-    hot: 'Hot',
-    new: 'New',
-    top: 'Top',
-  };
-  return (
-    <Select.Root value={selectedSort} onValueChange={onChange}>
-      <Select.Trigger className="bg-white rounded-full px-2 text-xs font-semibold hover:bg-gray-300">
-        <div className='flex items-center justify-center'>
-          <span className='text-slate-400 text-xs'>{sortOptions[selectedSort] || 'Sort By'}</span> <FaChevronDown className='ml-2 text-slate-400' />
-        </div>
-      </Select.Trigger>
-      <Select.Content className="bg-white border rounded-lg mt-2 w-full shadow-lg z-10 shadow">
-        {Object.entries(sortOptions).map(([value, label]) => (
-          <Select.Item key={value} value={value} className="p-2 hover:bg-gray-100 cursor-pointer px-5">
-            {label}
-          </Select.Item>
-        ))}
-      </Select.Content>
-    </Select.Root>
-  );
-};
+import { useLocation, useParams } from 'react-router-dom';
+import { PiEmptyFill } from 'react-icons/pi';
+import { RiErrorWarningFill } from 'react-icons/ri';
 
 const Posts = () => {
   const { posts } = useSelector(store => store.post);
@@ -41,6 +18,8 @@ const Posts = () => {
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const observer = useRef()
+  const location = useLocation();
+  const { text } = useParams();
   const lastElementRef = (node) => {
     if (loading) return
     if (observer.current) observer.current.disconnect()
@@ -52,24 +31,37 @@ const Posts = () => {
     if (node) observer.current.observe(node)
   }
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const res = await getPost(page);
-        if (res.success) {
-          setRenderPosts(res.posts);
-          dispatch(setPosts(res.posts));
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPosts = async (type = '', sortBy = '') => {
+    try {
+      setLoading(true);
+      const res = await getPost(page, type, sortBy);
+      if (res.success) {
+        setRenderPosts(res.posts);
 
-    fetchPosts();
-  }, [page]);
+        dispatch(setPosts(res.posts));
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let type, sortBy = ''
+    if (location.pathname.includes('hot')) {
+      type = 'hot'
+      sortBy = text
+    }
+    else sortBy = text
+
+    console.log(type);
+    console.log("sortBy: ", sortBy);
+    console.log(text);
+    console.log(location);
+
+    fetchPosts(type, sortBy);
+  }, [page, text]);
 
   useEffect(() => {
     if (posts) {
@@ -96,9 +88,15 @@ const Posts = () => {
       {/* <button onClick={() => setPage(page + 1)}>
         Load More
       </button> */}
-      <div className="flex w-full items-center justify-center rounded-full">
+      {loading && <div className="flex w-full items-center justify-center rounded-full">
         <Loader2 className='h-8 w-8 animate-spin text-maincolor' />
-      </div>
+      </div>}
+      {posts.length < 1 && !loading &&
+        <div className='flex flex-col gap-3 items-center justify-center bg-white w-full h-[60vh] mx-auto transition-all duration-[300ms] pt-4 px-5'>
+          {/* <PiEmptyFill className='text-maincolor w-10 h-10' /> */}
+          <RiErrorWarningFill className='text-maincolor w-10 h-10'/>
+          <p>Không có dữ liệu</p>
+        </div>}
     </div>
   )
 }

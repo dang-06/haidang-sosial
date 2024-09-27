@@ -20,4 +20,13 @@ axiosClient.interceptors.response.use((response) => {
     return Promise.reject(error);
 });
 
+export const axiosClient1 = axios.create({
+    baseURL: import.meta.env.VITE_API_URI,
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    },
+    withCredentials: true
+});
+
 export default axiosClient;

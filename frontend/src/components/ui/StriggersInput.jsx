@@ -108,7 +108,6 @@ export default function TriggersInput({ sendMessageHandler }) {
             inputRef.current.style.height = 'auto';
             inputRef.current.style.height = '38px';
             setMultipleSuggestions([]);
-
         }
     };
 

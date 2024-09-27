@@ -46,8 +46,53 @@ export const getAllPost = async (req, res) => {
     try {
         const limit = 5;
         const page = parseInt(req.query.page) || 1;
+        const { type, sortBy } = req.query || ''
 
-        const posts = await Post.find().sort({ createdAt: -1 })
+        let sort
+        if (!sortBy || sortBy == "list") {
+            sort = { interactions: -1 }
+        } else if (sortBy == 'newest') {
+            sort = { createdAt: -1 }
+        } else if (sortBy == 'saved') {
+            const user = await User.findById(req.id).select('bookmarks');
+            const savedPostIds = user.bookmarks;
+            const posts = await Post.find({ _id: { $in: savedPostIds } })
+                .sort({ createdAt: -1 })
+                .limit(limit * page)
+                .populate({ path: 'author', select: 'username profilePicture followers gender' })
+                .populate({
+                    path: 'comments',
+                    options: { sort: { createdAt: -1 } },
+                    populate: [
+                        {
+                            path: 'author',
+                            select: 'username profilePicture'
+                        },
+                        {
+                            path: 'replies',
+                            options: { sort: { createdAt: -1 } },
+                            populate: {
+                                path: 'author',
+                                select: 'username profilePicture'
+                            },
+                        }
+                    ]
+                });
+            return res.status(200).json({
+                posts,
+                success: true
+            })
+        } else if (sortBy == 'for-you') sort ={}
+
+        let followingList = []
+        let querydb = {};
+        if (!type) {
+            const user = await User.findById(req.id).select('following');
+            followingList = user.following;
+            querydb = { author: { $in: followingList } }
+        } else querydb = {};
+
+        const posts = await Post.find(querydb).sort(sort)
             .limit(limit * page)
             .populate({ path: 'author', select: 'username profilePicture followers gender' })
             .populate({
@@ -234,6 +279,11 @@ export const likeComment = async (req, res) => {
                             const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
                             io.to(commentOwnerSocketId).emit('notification', notification)
                         }
+                        const post = await Post.findOne({ "comments._id": commentWithReply._id })
+                        if (post) {
+                            post.interactions += 1
+                            post.save()
+                        }
                         return res.status(200).json({ message: 'Comment liked', success: true });
                     } else {
                         return res.status(200).json({ message: 'You have already liked this comment', success: false });
@@ -258,6 +308,11 @@ export const likeComment = async (req, res) => {
             }
             const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
             io.to(commentOwnerSocketId).emit('notification', notification)
+        }
+        const post = await Post.findOne({ "comments._id": commentId })
+        if (post) {
+            post.interactions += 1
+            post.save()
         }
         return res.status(200).json({ message: 'Comment liked', success: true });
 
@@ -299,6 +354,11 @@ export const dislikeComment = async (req, res) => {
                             const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
                             io.to(commentOwnerSocketId).emit('notification', notification)
                         }
+                        const post = await Post.findOne({ "comments._id": commentWithReply._id })
+                        if (post) {
+                            post.interactions -= 1
+                            post.save()
+                        }
                         return res.status(200).json({ message: 'Comment disliked', success: true });
                     } else {
                         return res.status(200).json({ message: 'You have not liked this comment yet', success: false });
@@ -323,6 +383,11 @@ export const dislikeComment = async (req, res) => {
             }
             const commentOwnerSocketId = getReceiverSocketId(commentOwnerId)
             io.to(commentOwnerSocketId).emit('notification', notification)
+        }
+        const post = await Post.findOne({ "comments._id": commentId })
+        if (post) {
+            post.interactions -= 1
+            post.save()
         }
         return res.status(200).json({ message: 'Comment disliked', success: true });
 
@@ -423,14 +488,14 @@ export const bookmarkPost = async (req, res) => {
         if (user.bookmarks.includes(post._id)) {
             await user.updateOne({ $pull: { bookmarks: post._id } });
             await user.save();
-            await post.updateOne({ $pull: { bookmarks: authorId } });
+            await post.updateOne({ $pull: { bookmarks: authorId } }, { $inc: { interactions: -2 } });
             await post.save();
             return res.status(200).json({ type: 'unsaved', message: 'Post removed from bookmark', success: true });
 
         } else {
             await user.updateOne({ $addToSet: { bookmarks: post._id } });
             await user.save();
-            await post.updateOne({ $addToSet: { bookmarks: authorId } });
+            await post.updateOne({ $addToSet: { bookmarks: authorId } }, { $inc: { interactions: +2 } });
             await post.save();
             return res.status(200).json({ type: 'saved', message: 'Post bookmarked', success: true });
         }

@@ -58,7 +58,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
     let page = '';
     if (path === '/') {
       page = 'Trang chủ';
-    } else if (path === '/chat') {
+    } else if (path === '/hot/list') {
       page = 'Xu hướng';
     } else if (path === '/Video') {
       page = 'Video';
@@ -72,6 +72,8 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
       page = 'Trang chủ';
     } else if (path === '/re-share') {
       page = 'Trang chủ';
+    } else if (path === '/hot/for-you') {
+      page = 'Xu hướng';
     }
     dispatch(setCurrentPage(page));
 
@@ -94,7 +96,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
     if (textType === 'Trang chủ') {
       navigate("/");
     } else if (textType === "Xu hướng") {
-      navigate("/");
+      navigate("/hot/list");
     } else if (textType === "Video") {
       navigate(`/`);
     } else if (textType === "Thông báo") {
@@ -128,6 +130,8 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
             {
               sidebarItems.map((item, index) => {
                 const isActive = currentPage === item.text;
+                console.log(currentPage);
+
                 return (
                   <div key={index}>
                     {isActive ? (

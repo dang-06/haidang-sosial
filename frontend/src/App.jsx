@@ -29,6 +29,10 @@ const browserRouter = createBrowserRouter([
         element: <ProtectedRoutes><Home /></ProtectedRoutes>
       },
       {
+        path: '/hot/:text',
+        element: <ProtectedRoutes><Home /></ProtectedRoutes>
+      },
+      {
         path: '/profile/:id',
         element: <ProtectedRoutes> <Profile /></ProtectedRoutes>
       },

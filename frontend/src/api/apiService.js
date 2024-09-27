@@ -1,4 +1,5 @@
-import axiosClient from './axiosClient';
+import axios from 'axios';
+import axiosClient, { axiosClient1 } from './axiosClient';
 
 export const sendComment = async (postId, text) => {
     const response = await axiosClient.post(`/post/${postId}/comment`, { text });
@@ -10,8 +11,8 @@ export const getUserByUsername = async (username) => {
     return response.data;
 };
 
-export const getPost = async (page) => {
-    const response = await axiosClient.get(`/post/all?page=${page}`);
+export const getPost = async (page, type = '', sortBy = '') => {
+    const response = await axiosClient.get(`/post/all?page=${page}&type=${type}&sortBy=${sortBy}`);
     return response.data;
 };
 
@@ -31,6 +32,6 @@ export const replyComment = async (id, text) => {
 };
 
 export const getLoginStatus = async () => {
-    const response = await axiosClient.get(`user/status`);
+    const response = await axiosClient1.get(`user/status`);
     return response.data;
 };

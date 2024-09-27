@@ -57,20 +57,20 @@ const Login = () => {
                 const res = await getLoginStatus()
                 if (res.success) navigate("/")
             } catch (error) {
-                console.log(error);
+                console.log(error); 
             }
         }
         handleLoginStatus()
     },[])
     return (
         <div className='flex items-center w-screen h-screen justify-center'>
-            <form onSubmit={signupHandler} className='shadow-lg flex flex-col gap-5 p-8 md:w-[500px]'>
+            <form onSubmit={signupHandler} className='shadow-lg flex flex-col gap-3 p-6 md:w-[420px]'>
                 <div className='mb-2 flex flex-col items-center'>
                     <img className='w-[100px] md:w-[200px] my-6' src="/newLogo.png" alt="" />
-                    <p className='text-base text-center'>Mở rộng kết nối, theo dõi và khám phá xu hướng nổi bật!</p>
+                    <p className='text-sm text-center'>Mở rộng kết nối, theo dõi và khám phá xu hướng nổi bật!</p>
                 </div>
                 <div>
-                    <span className='font-medium'>Email</span>  
+                    <span className='font-medium text-sm'>Email</span>  
                     <Input
                         type="email"
                         name="email"
@@ -80,7 +80,7 @@ const Login = () => {
                     />
                 </div>
                 <div>
-                    <span className='font-medium'>Mật khẩu</span>
+                    <span className='font-medium text-sm'>Mật khẩu</span>
                     <Input
                         type="password"
                         name="password"
@@ -100,7 +100,7 @@ const Login = () => {
                     )
                 }
 
-                <span className='text-center mt-4'>Bạn chưa có tài khoản? <Link to="/signup" className='text-blue-600'>Đăng kí ngay</Link></span>
+                <span className='text-center mt-4 text-sm'>Bạn chưa có tài khoản? <Link to="/signup" className='text-blue-600'>Đăng kí ngay</Link></span>
             </form>
         </div>
     )

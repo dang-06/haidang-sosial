@@ -83,13 +83,13 @@ const Signup = () => {
     }, [])
     return (
         <div className='flex items-center w-screen h-screen justify-center'>
-            <div className='shadow-lg flex flex-col gap-5 p-8 md:w-[500px]'>
+            <div className='shadow-lg flex flex-col gap-3 p-6 md:w-[420px]'>
                 <div className='my-2 flex flex-col items-center'>
                     <img className='w-[100px] md:w-[200px] my-6' src="/newLogo.png" alt="" />
                     <p className='text-base text-center'>Theo dõi mọi người, khám phá xu hướng mới</p>
                 </div>
                 <div>
-                    <span className='font-medium'>Tên hiển thị</span>
+                    <span className='font-medium text-sm'>Tên hiển thị</span>
                     <Input
                         type="text"
                         name="username"
@@ -99,7 +99,7 @@ const Signup = () => {
                     />
                 </div>
                 <div>
-                    <span className='font-medium'>Email</span>
+                    <span className='font-medium text-sm'>Email</span>
                     <Input
                         type="email"
                         name="email"
@@ -109,7 +109,7 @@ const Signup = () => {
                     />
                 </div>
                 <div>
-                    <span className='font-medium'>Mật khẩu</span>
+                    <span className='font-medium text-sm'>Mật khẩu</span>
                     <Input
                         type="password"
                         name="password"
@@ -128,7 +128,7 @@ const Signup = () => {
                         <Button onClick={verifyHandler}>Đăng kí</Button>
                     )
                 }
-                <span className='text-center mt-4'>Bạn đã có tài khoản  <Link to="/login" className='text-blue-600'>Đăng nhập</Link></span>
+                <span className='text-center mt-4 text-sm'>Bạn đã có tài khoản  <Link to="/login" className='text-blue-600'>Đăng nhập</Link></span>
             </div>
             <Modal
                 open={open}
@@ -142,10 +142,10 @@ const Signup = () => {
                         TOTP
                     </Typography> */}
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                        <p className='text-base text-center'>Mã OTP đã được gửi đến Email của bạn</p>
+                        <p className='text-base text-center text-sm'>Mã OTP đã được gửi đến Email của bạn</p>
 
                         <div>
-                            <span className='font-medium'>OTP</span>
+                            <span className='font-medium text-sm'>OTP</span>s
                             <div className="flex">
                                 <Input
                                     type="text"

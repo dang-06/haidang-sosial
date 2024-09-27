@@ -15,6 +15,7 @@ import { DialogTitle } from '@radix-ui/react-dialog'
 import { formatDateHandler } from '@/lib/utils'
 import { sendComment } from '@/api/apiService'
 import TriggersInput from '../ui/StriggersInput'
+import { parseMentions } from '@/lib/utils/mentionParser'
 
 const CommentDialog = ({ open, setOpen }) => {
   const [text, setText] = useState("");
@@ -165,8 +166,8 @@ const CommentDialog = ({ open, setOpen }) => {
               </Dialog>
             </div>
             <div>
-              <span className='px-4 pb-2 line-clamp-3'>{selectedPost?.caption}</span>
-              <hr />
+              <span className='px-4 pb-2'>{parseMentions(selectedPost?.caption)}</span>
+              <hr className='mt-2'/>
             </div>
             <div className='grow overflow-y-auto px-4 pb-4 max-h-[70vh] no-scrollbar'>
               {
