@@ -14,6 +14,7 @@ import { setLikeNotification } from './redux/rtnSlice';
 import ProtectedRoutes from './components/ProtectedRoutes';
 import { setCurrentPage } from './redux/currentSlice';
 import { MentionProvider } from './lib/utils/MentionContext';
+import './App.css';
 
 const browserRouter = createBrowserRouter([
   {

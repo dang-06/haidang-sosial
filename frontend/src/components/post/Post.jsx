@@ -15,6 +15,10 @@ import { formatDateHandler } from '@/lib/utils';
 import { Female } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { parseMentions } from '@/lib/utils/mentionParser';
+import { AiOutlineComment } from 'react-icons/ai';
+import { RiShareBoxFill, RiShareForwardBoxLine } from 'react-icons/ri';
+import { BsSave2 } from "react-icons/bs";
+import { LiaCommentDots, LiaShareSquareSolid } from "react-icons/lia";
 
 const Post = forwardRef((props, ref) => {
     const { post } = props;
@@ -240,25 +244,25 @@ const Post = forwardRef((props, ref) => {
                     <span className='text-gray-600'>{postLike}</span>
                 </div>
                 <div className='flex items-center gap-2'>
-                    <MessageCircle size={'20'} onClick={() => {
+                    <LiaCommentDots size={'20'} onClick={() => {
                         dispatch(setSelectedPost(post));
                         setOpen(true);
                     }} className='cursor-pointer  hover:text-maincolor' />
                     <span className=''>{comment?.length}</span>
                 </div>
                 <div className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor '>
-                    <Send size={'20'} className='cursor-pointer ' />
+                    <LiaShareSquareSolid size={'20'} className='cursor-pointer ' />
                     <span className=' hover:text-maincolor'>Chia sẻ</span>
                 </div>
                 {
                     marked ?
-                        <div className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor'>
-                            <Bookmark size={'20'} onClick={bookmarkHandler} className='cursor-pointer text-yellow-600 transition-all duration-300 ease-in-out transform' />
+                        <div onClick={bookmarkHandler} className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor text-yellow-600'>
+                            <BsSave2  className='cursor-pointer transition-all duration-300 ease-in-out transform' />
                             <span className=' hover:text-maincolor'>Lưu</span>
                         </div>
                         :
-                        <div size={'20'} className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor'>
-                            <Bookmark onClick={bookmarkHandler} className='cursor-pointer transition-all duration-300 ease-in-out transform hover:text-maincolor' />
+                        <div onClick={bookmarkHandler} className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor'>
+                            <BsSave2  className='cursor-pointer transition-all duration-300 ease-in-out transform hover:text-maincolor' />
                             <span className=' hover:text-maincolor'>Lưu</span>
                         </div>
                 }
