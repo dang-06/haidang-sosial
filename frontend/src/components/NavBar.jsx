@@ -62,9 +62,9 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
       page = 'Xu hướng';
     } else if (path === '/Video') {
       page = 'Video';
-    } else if (path === '/Notification') {
+    } else if (path === '/notification/at') {
       page = 'Thông báo';
-    } else if (path === `/profile/${user._id}`) {
+    } else if (path === `/profile/${user?._id}`) {
       page = 'Trang cá nhân';
     } else if (path === '/newest') {
       page = 'Trang chủ';
@@ -75,13 +75,11 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
     } else if (path === '/hot/for-you') {
       page = 'Xu hướng';
     }
+    
     dispatch(setCurrentPage(page));
 
     // if(!user) navigate('/login')
   }, [dispatch, path]);
-  const options = [
-    user, user, user, user, user, user, user
-  ];
   const sidebarItems = [
     { icon: <IoHomeOutline className='h-7 w-7' />, iconActive: <IoHome className='text-maincolor h-7 w-7' />, text: "Trang chủ" },
     { icon: <MdOutlineExplore className='h-7 w-7' />, iconActive: <MdExplore className='text-maincolor h-7 w-7' />, text: "Xu hướng" },
@@ -100,7 +98,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
     } else if (textType === "Video") {
       navigate(`/`);
     } else if (textType === "Thông báo") {
-      navigate("/");
+      navigate("/notification/at");
     } else if (textType === 'Trang cá nhân') {
       navigate(`/profile/${user?._id}`);
     }
@@ -130,7 +128,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
             {
               sidebarItems.map((item, index) => {
                 const isActive = currentPage === item.text;
-                console.log(currentPage);
+                
 
                 return (
                   <div key={index}>

@@ -16,6 +16,11 @@ export const getPost = async (page, type = '', sortBy = '') => {
     return response.data;
 };
 
+export const readPost = async (read) => {
+    const response = await axiosClient.post(`/post/read`,read);
+    return response.data;
+};
+
 export const followOrUnfollow = async (userId) => {
     const response = await axiosClient.post(`/user/followorunfollow/${userId}`);
     return response.data;

@@ -5,7 +5,8 @@ import { User } from "../models/user.model.js";
 import { Comment } from "../models/comment.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import e from "cors";
-
+import mongoose from "mongoose";
+const { ObjectId } = mongoose.Types;
 export const addNewPost = async (req, res) => {
     try {
         const { caption } = req.body;
@@ -46,16 +47,22 @@ export const getAllPost = async (req, res) => {
     try {
         const limit = 5;
         const page = parseInt(req.query.page) || 1;
-        const { type, sortBy } = req.query || ''
+        const { type, sortBy } = req.query || '';
 
-        let sort
-        if (!sortBy || sortBy == "list") {
-            sort = { interactions: -1 }
-        } else if (sortBy == 'newest') {
-            sort = { createdAt: -1 }
-        } else if (sortBy == 'saved') {
+        if (sortBy === 'saved') {
             const user = await User.findById(req.id).select('bookmarks');
-            const savedPostIds = user.bookmarks;
+            const savedPostIds = user.bookmarks || [];
+
+            if (savedPostIds.length === 0) {
+                return res.status(200).json({
+                    posts: [],
+                    total: 0,
+                    success: true,
+                });
+            }
+
+            const total = await Post.countDocuments({ _id: { $in: savedPostIds } });
+
             const posts = await Post.find({ _id: { $in: savedPostIds } })
                 .sort({ createdAt: -1 })
                 .limit(limit * page)
@@ -78,47 +85,115 @@ export const getAllPost = async (req, res) => {
                         }
                     ]
                 });
-            return res.status(200).json({
-                posts,
-                success: true
-            })
-        } else if (sortBy == 'for-you') sort ={}
 
-        let followingList = []
-        let querydb = {};
+            return res.status(200).json({
+                posts: posts,
+                total: total,
+                success: true
+            });
+        }
+
+        let sort = {};
+        if (!sortBy || sortBy === "list") {
+            sort = { interactions: -1 };
+        } else if (sortBy === 'newest') {
+            sort = { createdAt: -1 };
+        } else if (sortBy === 'for-you') {
+            sort = {};
+        }
+
+        let followingList = [];
+        let matchCondition = {};
+        let total = 0
         if (!type) {
             const user = await User.findById(req.id).select('following');
             followingList = user.following;
-            querydb = { author: { $in: followingList } }
-        } else querydb = {};
+            if (followingList.length === 0) {
+                return res.status(200).json({
+                    posts: [],
+                    total: 0,
+                    success: true
+                });
+            }
+            matchCondition = { author: { $in: followingList } };
+            total = await Post.countDocuments({ author: { $in: followingList } });
+        } else {
+            matchCondition = {};
+            total = await Post.countDocuments();
+        }
 
-        const posts = await Post.find(querydb).sort(sort)
-            .limit(limit * page)
-            .populate({ path: 'author', select: 'username profilePicture followers gender' })
-            .populate({
-                path: 'comments',
-                options: { sort: { createdAt: -1 } },
-                populate: [
-                    {
-                        path: 'author',
-                        select: 'username profilePicture'
-                    },
-                    {
-                        path: 'replies',
-                        options: { sort: { createdAt: -1 } },
-                        populate: {
-                            path: 'author',
-                            select: 'username profilePicture'
-                        },
+
+
+        const posts = await Post.aggregate([
+            { $match: matchCondition },
+            {
+                $addFields: {
+                    isRead: {
+                        $cond: [{ $in: [new ObjectId(req.id), { $ifNull: ["$read", []] }] }, 1, 0]
                     }
-                ]
-            });
+                }
+            },
+            { $sort: { isRead: 1, ...sort } },
+            { $limit: limit * page },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            { $unwind: "$author" },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'comments',
+                    foreignField: '_id',
+                    as: 'comments'
+                }
+            },
+            {
+                $addFields: {
+                    comments: {
+                        $cond: {
+                            if: { $isArray: "$comments" },
+                            then: {
+                                $map: {
+                                    input: "$comments",
+                                    as: "comment",
+                                    in: {
+                                        _id: "$$comment._id",
+                                        text: "$$comment.text",
+                                        createdAt: "$$comment.createdAt",
+                                        updatedAt: "$$comment.updatedAt",
+                                        author: "$author",
+                                        replies: {
+                                            $cond: {
+                                                if: { $isArray: "$$comment.replies" },
+                                                then: "$$comment.replies",
+                                                else: []
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            else: []
+                        }
+                    }
+                }
+            },
+            // { $project: { isRead: 0 } }
+        ]);
+
+        console.log("req.id:", req.id);
+
         return res.status(200).json({
             posts,
+            total,
             success: true
-        })
+        });
     } catch (error) {
-        console.log(error);
+        console.error("Error retrieving posts:", error);
         return res.status(500).json({
             message: 'Error retrieving posts',
             error: error.message,
@@ -502,5 +577,23 @@ export const bookmarkPost = async (req, res) => {
 
     } catch (error) {
         console.log(error);
+    }
+}
+export const readPost = async (req, res) => {
+    try {
+        const userId = req.id
+        const { postId } = req.body
+
+        await Post.updateOne(
+            { _id: postId, read: { $ne: userId } },
+            { $addToSet: { read: userId } }
+        );
+
+        return res.status(200).json({ type: 'read', message: `post read`, success: true });
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Error updating read posts', error: error.message });
     }
 }

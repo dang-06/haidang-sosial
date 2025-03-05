@@ -16,8 +16,8 @@ const Comment = ({ commentProp }) => {
     const { user } = useSelector(store => store.auth);
     const [comment, setComment] = useState(commentProp);
     const [liked, setLiked] = useState(comment?.likes?.includes(user?._id) || false);
-    const [commentLike, setCommentLike] = useState(comment.likes.length);
-    const [commentReplies, setCommentReplies] = useState(comment?.replies.length);
+    const [commentLike, setCommentLike] = useState(comment?.likes?.length);
+    const [commentReplies, setCommentReplies] = useState(comment?.replies?.length);
     const [replies, setReplies] = useState(comment?.replies);
     const { posts, selectedPost } = useSelector(store => store.post);
     const formatDate = formatDateHandler(comment?.createdAt);
@@ -25,7 +25,7 @@ const Comment = ({ commentProp }) => {
 
 
     useEffect(() => {
-        setCommentLike(comment?.likes.length)
+        setCommentLike(comment?.likes?.length)
         setLiked(comment?.likes?.includes(user?._id) || false);
         setCommentReplies(comment?.replies.length)
         setReplies(comment?.replies)

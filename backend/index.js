@@ -8,7 +8,8 @@ import postRoute from "./routes/post.route.js";
 import messageRoute from "./routes/message.route.js";
 import { app, server } from "./socket/socket.js";
 import path from "path";
- 
+import connectRedis from "./utils/redis.js";
+
 dotenv.config();
 
 
@@ -32,12 +33,13 @@ app.use("/api/v1/message", messageRoute);
 
 
 app.use(express.static(path.join(__dirname, "/frontend/dist")));
-app.get("*", (req,res)=>{
+app.get("*", (req, res) => {
     res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
 })
 
 
-server.listen(PORT, () => {
-    connectDB();
+server.listen(PORT, async () => {
+    await connectDB();
+    await connectRedis();
     console.log(`Server listen at port ${PORT}`);
 });

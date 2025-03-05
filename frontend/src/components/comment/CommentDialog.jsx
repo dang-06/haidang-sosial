@@ -37,8 +37,11 @@ const CommentDialog = ({ open, setOpen }) => {
       setCurrentIndex(0);
       setIsFirst(true)
       setIsLast(selectedPost.image.length === 1);
-      
     }
+    console.log(selectedPost);
+    console.log(comment);
+    console.log(open);
+
   }, [selectedPost]);
 
   const changeEventHandler = (e) => {
@@ -167,12 +170,14 @@ const CommentDialog = ({ open, setOpen }) => {
             </div>
             <div>
               <span className='px-4 pb-2'>{parseMentions(selectedPost?.caption)}</span>
-              <hr className='mt-2'/>
+              <hr className='mt-2' />
             </div>
             <div className='grow overflow-y-auto px-4 pb-4 max-h-[70vh] no-scrollbar'>
-              {
-                comment?.map((comment) => <Comment key={comment._id} commentProp={comment}/>)
-              }
+              {Array.isArray(comment) && comment.length > 0 ? (
+                comment.map((comment) => <Comment key={comment._id} commentProp={comment} />)
+              ) : (
+                <p></p>
+              )}
             </div>
             <div className='p-4'>
               <div className='flex items-center gap-2'>
@@ -183,7 +188,7 @@ const CommentDialog = ({ open, setOpen }) => {
                     }
                   }}
                   type="text" value={text} onChange={changeEventHandler} placeholder='Add a comment...' className='w-full outline-none border text-sm border-gray-300 p-2 relative rounded' /> */}
-                <TriggersInput sendMessageHandler={sendMessageHandler}/>
+                <TriggersInput sendMessageHandler={sendMessageHandler} />
                 {/* <Button className="absolute right-5 border-none h-5 text-maincolor hover:bg-white" disabled={!text.trim()} onClick={sendMessageHandler} variant="outline">Đăng</Button> */}
               </div>
             </div>

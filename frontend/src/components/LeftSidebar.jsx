@@ -4,9 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { LuDot } from 'react-icons/lu'
-import { FaRegSave, FaRegShareSquare, FaRegStar } from 'react-icons/fa'
-import { MdOutlineRecommend, MdOutlineWatchLater } from 'react-icons/md'
+import { FaRegCommentDots, FaRegSave, FaRegShareSquare, FaRegStar } from 'react-icons/fa'
+import { MdOutlineAlternateEmail, MdOutlineRecommend, MdOutlineWatchLater } from 'react-icons/md'
 import { GiBurningRoundShot } from "react-icons/gi";
+import { AiOutlineLike } from 'react-icons/ai'
+import { FaRegMessage } from "react-icons/fa6";
 
 const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
     const navigate = useNavigate();
@@ -29,15 +31,28 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
     // })
 
 
-    const sidebarItems = path.includes('hot') ? [
-        { icon: <GiBurningRoundShot />, text: "Xu hướng", path: "hot/list" },
-        { icon: <MdOutlineRecommend />, text: "Dành cho bạn", path: "hot/for-you" },
-    ] : [
-        { icon: <FaRegStar />, text: "Nhiều tương tác", path: "" },
-        { icon: <MdOutlineWatchLater />, text: "Mới nhất", path: "newest" },
-        { icon: <FaRegSave />, text: "Đã lưu", path: "saved" },
-        { icon: <FaRegShareSquare />, text: "Chia sẻ lại", path: "re-share" },
-    ];
+    let sidebarItems
+
+    if (path.includes('hot')) {
+        sidebarItems = [
+            { icon: <GiBurningRoundShot />, text: "Xu hướng", path: "hot/list" },
+            { icon: <MdOutlineRecommend />, text: "Dành cho bạn", path: "hot/for-you" },
+        ]
+    } else if (path.includes('notification')) {
+        sidebarItems = [
+            { icon: <MdOutlineAlternateEmail />, text: "@Bạn", path: "notification/at" },
+            { icon: <FaRegCommentDots />, text: "Bình luận", path: "notification/comment" },
+            { icon: <AiOutlineLike />, text: "Thích", path: "notification/like" },
+            { icon: <FaRegMessage />, text: "Nhắn tin", path: "notification/message" },
+        ]
+    } else {
+        sidebarItems = [
+            { icon: <FaRegStar />, text: "Nhiều tương tác", path: "" },
+            { icon: <MdOutlineWatchLater />, text: "Mới nhất", path: "newest" },
+            { icon: <FaRegSave />, text: "Đã lưu", path: "saved" },
+            { icon: <FaRegShareSquare />, text: "Chia sẻ lại", path: "re-share" },
+        ];
+    }
 
     const group = [
         { img: userProfile?.profilePicture, text: "Gym tại nhà" },
@@ -59,13 +74,18 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
         <>
             <div className=''>
                 <div className='px-1 py-3'>
-                    <span className='py-2 text-xl font-semibold'>Dành cho bạn</span>
+                    <span className='py-2 text-xl font-semibold'>{path.includes('hot') ? 'Đề xuất cho bạn' : 'Bạn bè'}</span>
                 </div>
                 {sidebarItems.map((item, index) => {
                     let isActive = item.path === text;
                     if (item.path === '' && !text) isActive = true
-                    if (item.path === 'hot/list' && text == 'list') isActive = true
-                    if (item.path === 'hot/for-you' && text == 'for-you') isActive = true
+                    else if (item.path === 'hot/list' && text == 'list') isActive = true
+                    else if (item.path === 'hot/for-you' && text == 'for-you') isActive = true
+                    else if (item.path === 'notification/at' && text == 'at') isActive = true
+                    else if (item.path === 'notification/comment' && text == 'comment') isActive = true
+                    else if (item.path === 'notification/like' && text == 'like') isActive = true
+                    else if (item.path === 'notification/message' && text == 'message') isActive = true
+                    
                     return (
                         <div key={index}
                             onClick={() => leftSidebarHandler(item.path)}

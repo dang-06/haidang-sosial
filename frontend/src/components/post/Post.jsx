@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react'
+import React, { forwardRef, useEffect, useRef, useState } from 'react'
 import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog'
 import { Bookmark, MessageCircle, MoreHorizontal, Send } from 'lucide-react'
 import { Button } from '../ui/button'
@@ -19,6 +19,9 @@ import { AiOutlineComment } from 'react-icons/ai';
 import { RiShareBoxFill, RiShareForwardBoxLine } from 'react-icons/ri';
 import { BsSave2 } from "react-icons/bs";
 import { LiaCommentDots, LiaShareSquareSolid } from "react-icons/lia";
+import { motion } from 'framer-motion';
+import { readPost } from '@/api/apiService';
+
 
 const Post = forwardRef((props, ref) => {
     const { post } = props;
@@ -30,24 +33,70 @@ const Post = forwardRef((props, ref) => {
     const [marked, setMarked] = useState(post.bookmarks?.includes(user?._id) || false);
     const [postLike, setPostLike] = useState(post.likes.length);
     const [comment, setComment] = useState(post.comments);
+    const [isAnimating, setIsAnimating] = useState(false);
     const dispatch = useDispatch();
     const [formatDate, setFormatDate] = useState("");
+    const startTimeRef = useRef(null);
+    const postRef = useRef(null);
+    const [scrollCount, setScrollCount] = useState(0);
 
-    // const formatDate = formatDateHandler(post.createdAt);
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(async (entry) => {
+                    if (entry.isIntersecting) {
+                        startTimeRef.current = Date.now();
 
-    const changeEventHandler = (e) => {
-        const inputText = e.target.value;
-        if (inputText.trim()) {
-            setText(inputText);
-        } else {
-            setText("");
+                    } else {
+                        if (startTimeRef.current) {
+                            const duration = Date.now() - startTimeRef.current;
+                            startTimeRef.current = null;
+                            await handleSendDuration(duration);
+
+                        }
+                    }
+                });
+            },
+            { threshold: 1 }
+        );
+
+        if (postRef.current) {
+            observer.observe(postRef.current);
         }
-    }
+
+        return () => {
+            if (postRef.current) {
+                observer.unobserve(postRef.current);
+            }
+        };
+    }, [postRef]);
+
+    const handleSendDuration = async (duration) => {
+        try {
+            const read = {
+                postId: post._id,
+                duration: duration,
+            }
+            const res = await readPost(read)
+        } catch (error) {
+            console.error('Error sending duration:', error);
+        }
+    };
+
+    // useEffect(() => {
+    //     return () => {
+    //         handleSendDuration();
+    //     };
+    // }, []);
 
     const likeOrDislikeHandler = async () => {
         try {
             const action = liked ? 'dislike' : 'like';
             setLiked(!liked);
+            if (action == 'like') {
+                setIsAnimating(true);
+                setTimeout(() => setIsAnimating(false), 4000);
+            }
             const res = await axios.get(`${import.meta.env.VITE_API_URI}/post/${post._id}/${action}`, { withCredentials: true });
             if (res.data.success) {
                 const updatedLikes = liked ? postLike - 1 : postLike + 1;
@@ -128,22 +177,64 @@ const Post = forwardRef((props, ref) => {
         setFormatDate(formatted);
     }, [post, props])
     return (
-        <div ref={ref} className='mb-2 bg-white'>
-            <div className='w-full mx-auto transition-all duration-[300ms] pt-4 px-5'>
+        <div ref={ref} className='mb-2 bg-white relative'>
+            <div ref={postRef} className='w-full mx-auto transition-all duration-[300ms] pt-4 px-5'>
                 <div className='flex items-center justify-between mb-1 px-2 md:px-0'>
                     <div className='flex items-center gap-2'>
                         <Link to={`/profile/${post.author?._id}`}>
                             <Avatar sx={{ width: 50, height: 50 }} alt="post_image" src={post.author?.profilePicture} />
                         </Link>
-                        <div className='flex flex-col '>
-                            <Link to={`/profile/${post.author?._id}`}>
+                        <div className='flex flex-col'>
+                            <Link to={`/profile/${post.author?._id}`} className='w-fit relative '>
                                 <span className='font-semibold text-base'>{post.author?.username}</span>
+                                <div className="flex gap-1 absolute right-[-50px] top-1">
+                                    {/* <video
+                                        width="20"
+                                        height="20"
+                                        controls
+                                        autoPlay
+                                        loop
+                                        muted
+                                        style={{ 
+                                            display: 'block', 
+                                            objectFit: 'cover',
+                                            pointerEvents: 'none', 
+                                            border: 'none', 
+                                            outline: 'none', 
+                                            backgroundColor: 'transparent'
+                                        }} 
+                                    >
+                                        <source src="/video/like-badge.webm" type="video/webm" />
+                                        Your browser does not support the video tag.
+                                    </video> */}
+                                    {/* <video
+                                        width="20"
+                                        height="20"
+                                        controls
+                                        autoPlay
+                                        loop
+                                        muted
+                                        style={{ 
+                                            display: 'block', 
+                                            objectFit: 'cover',
+                                            pointerEvents: 'none', 
+                                            border: 'none', 
+                                            outline: 'none', 
+                                            backgroundColor: 'transparent'
+                                        }} 
+                                    >
+                                        <source src="/video/star-badge.webm" type="video/webm" />
+                                        Your browser does not support the video tag.
+                                    </video> */}
+                                </div>
+
                             </Link>
                             {/* {user?._id === post.author._id && <Badge variant="secondary">Author</Badge>} */}
                             <div className="flex gap-2">
                                 <span className='text-xs text-gray-600'>{formatDate}</span>
                                 <span className='text-xs text-gray-600'>{post.author?.followers?.length || "0"} người theo dõi {post.author?.gender == "female" ? "cô ấy" : "anh ấy"}</span>
                             </div>
+
                         </div>
                     </div>
                     <Dialog>
@@ -257,16 +348,39 @@ const Post = forwardRef((props, ref) => {
                 {
                     marked ?
                         <div onClick={bookmarkHandler} className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor text-yellow-600'>
-                            <BsSave2  className='cursor-pointer transition-all duration-300 ease-in-out transform' />
+                            <BsSave2 className='cursor-pointer transition-all duration-300 ease-in-out transform' />
                             <span className=' hover:text-maincolor'>Lưu</span>
                         </div>
                         :
                         <div onClick={bookmarkHandler} className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor'>
-                            <BsSave2  className='cursor-pointer transition-all duration-300 ease-in-out transform hover:text-maincolor' />
+                            <BsSave2 className='cursor-pointer transition-all duration-300 ease-in-out transform hover:text-maincolor' />
                             <span className=' hover:text-maincolor'>Lưu</span>
                         </div>
                 }
             </div>
+            {isAnimating && (
+                <motion.div
+                    initial={{ opacity: 0, y: 0, scale: 1 }}
+                    animate={{
+                        opacity: [1, 1, 0],
+                        y: [0, -700], x: [0, -100],
+                        scale: [1, 1.2, 1],
+                        rotate: [45, -30]
+                    }}
+                    transition={{ duration: 2.5, ease: "easeOut" }}
+                    className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-30"
+                >
+                    <motion.div
+                        initial={{ color: "#FF0000" }}
+                        animate={{
+                            color: ["#FF0000", "#FF3300", "#FF6600", "#FF9900", "#FF0000"]
+                        }}
+                        transition={{ duration: 2.5, rotate: { duration: 0.5 }, ease: "easeInOut", }}
+                    >
+                        <FaHeart size={'80'} className="transition-all duration-300 ease-in-out transform" />
+                    </motion.div>
+                </motion.div>
+            )}
         </div>
     )
 })

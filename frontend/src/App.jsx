@@ -15,6 +15,7 @@ import ProtectedRoutes from './components/ProtectedRoutes';
 import { setCurrentPage } from './redux/currentSlice';
 import { MentionProvider } from './lib/utils/MentionContext';
 import './App.css';
+import NotificationLayout from './components/notification/NotificationLayout';
 
 const browserRouter = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const browserRouter = createBrowserRouter([
       {
         path: '/hot/:text',
         element: <ProtectedRoutes><Home /></ProtectedRoutes>
+      },
+      {
+        path: '/notification/:text',
+        element: <ProtectedRoutes><NotificationLayout /></ProtectedRoutes>
       },
       {
         path: '/profile/:id',
