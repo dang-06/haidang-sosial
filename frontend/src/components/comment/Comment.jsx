@@ -40,6 +40,7 @@ const Comment = ({ commentProp }) => {
             const res = await replyComment(comment._id, value)
             if (res.success) {
                 setComment(res.comment);
+                // update new comment
                 const updatedPostData = posts.map(p => {
                     if (p._id == selectedPost._id){
                         return {...p, comments: p.comments.map(c => {
