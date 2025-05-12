@@ -248,28 +248,28 @@ export const likePost = async (req, res) => {
             post: post._id,
             message: "đã thích bài viết của bạn."
         });
-
-        // gửi socket
-        const notificationData = {
-            _id: newNotification._id,
-            type: notificationType.LIKE,
-            sender: sender,
-            post: post,
-            message: "đã thích bài viết của bạn.",
-            createdAt: moment().format("DD-MM-YYYY HH:mm:ss")
-          };
-        SocketService.sendNotification(postOwnerId, notificationData)
+    
         
         if (postOwnerId !== userDoAction) {
-            const notification = {
-                type: 'like',
-                userId: userDoAction,
-                userDetails: sender,
-                postId,
-                message: 'Your post was liked'
-            }
-            const postOwnerSocketId = getReceiverSocketId(postOwnerId);
-            io.to(postOwnerSocketId).emit('notification', notification);
+            // const notification = {
+            //     type: 'like',
+            //     userId: userDoAction,
+            //     userDetails: sender,
+            //     postId,
+            //     message: 'Your post was liked'
+            // }
+            // const postOwnerSocketId = getReceiverSocketId(postOwnerId);
+            // io.to(postOwnerSocketId).emit('notification', notification);
+            // gửi socket
+            const notificationData = {
+                _id: newNotification._id,
+                type: notificationType.LIKE,
+                sender: sender,
+                post: post,
+                message: "đã thích bài viết của bạn.",
+                createdAt: moment().format("DD-MM-YYYY HH:mm:ss")
+            };
+            await SocketService.sendNotification(postOwnerId, notificationData)
         }
 
         return res.status(200).json({ message: 'Post liked', success: true });
