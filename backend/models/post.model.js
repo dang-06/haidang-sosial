@@ -8,6 +8,7 @@ const postSchema = new mongoose.Schema({
     bookmarks:[{type:mongoose.Schema.Types.ObjectId, ref:'User'}],
     interactions: { type: Number, default: 0 },
     read: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    mentions:[{type:mongoose.Schema.Types.ObjectId, ref:'User'}]
 },{
     timestamps: true
 });

@@ -3,10 +3,15 @@ import cloudinary from "../utils/cloudinary.js";
 import { Post } from "../models/post.model.js";
 import { User } from "../models/user.model.js";
 import { Comment } from "../models/comment.model.js";
+import { Notification } from "../models/notification.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import e from "cors";
 import mongoose from "mongoose";
 const { ObjectId } = mongoose.Types;
+import { SocketService } from "../services/socket.service.js";
+import { notificationType } from "../utils/constant.js";
+import moment from "moment";
+
 export const addNewPost = async (req, res) => {
     try {
         const { caption } = req.body;
@@ -183,10 +188,7 @@ export const getAllPost = async (req, res) => {
                     }
                 }
             },
-            // { $project: { isRead: 0 } }
         ]);
-
-        console.log("req.id:", req.id);
 
         return res.status(200).json({
             posts,
@@ -234,20 +236,40 @@ export const likePost = async (req, res) => {
         await post.updateOne({ $addToSet: { likes: userDoAction } }, { $inc: { interactions: 2 } });
         await post.save();
 
-        const user = await User.findById(userDoAction).select('username profilePicture createdAt');
-
+        const sender = await User.findById(userDoAction).select('username profilePicture createdAt');
+        
         const postOwnerId = post.author.toString();
+
+        // lưu thông báo vào DB
+        const newNotification = await Notification.create({
+            recipient: post.author,
+            sender: userDoAction,
+            type: "like",
+            post: post._id,
+            message: "đã thích bài viết của bạn."
+        });
+
+        // gửi socket
+        const notificationData = {
+            _id: newNotification._id,
+            type: notificationType.LIKE,
+            sender: sender,
+            post: post,
+            message: "đã thích bài viết của bạn.",
+            createdAt: moment().format("DD-MM-YYYY HH:mm:ss")
+          };
+        SocketService.sendNotification(postOwnerId, notificationData)
+        
         if (postOwnerId !== userDoAction) {
             const notification = {
                 type: 'like',
                 userId: userDoAction,
-                userDetails: user,
+                userDetails: sender,
                 postId,
                 message: 'Your post was liked'
             }
             const postOwnerSocketId = getReceiverSocketId(postOwnerId);
             io.to(postOwnerSocketId).emit('notification', notification);
-            console.log()
         }
 
         return res.status(200).json({ message: 'Post liked', success: true });
@@ -591,8 +613,6 @@ export const readPost = async (req, res) => {
         );
 
         return res.status(200).json({ type: 'read', message: `post read`, success: true });
-
-
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: 'Error updating read posts', error: error.message });
