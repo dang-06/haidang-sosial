@@ -39,7 +39,7 @@ app.get("*", (req, res) => {
 
 
 server.listen(PORT, async () => {
-    await connectDB();
-    await connectRedis();
+    const { primary, secondary } = await connectDB();
+    // await connectRedis();
     console.log(`Server listen at port ${PORT}`);
 });

@@ -35,6 +35,10 @@ const Comment = ({ commentProp }) => {
         setComment(commentProp);
     }, [commentProp]);
 
+    useEffect(() => {
+        console.log(liked)
+    }, [liked]);
+
     const sendMessageHandler = async (value) => {
         try {
             const res = await replyComment(comment._id, value)

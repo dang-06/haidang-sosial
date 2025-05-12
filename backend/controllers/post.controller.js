@@ -107,7 +107,7 @@ export const getAllPost = async (req, res) => {
         let total = 0
         if (!type) {
             const user = await User.findById(req.id).select('following');
-            followingList = user.following;
+            followingList = user.following || [];
             if (followingList.length === 0) {
                 return res.status(200).json({
                     posts: [],
@@ -167,6 +167,7 @@ export const getAllPost = async (req, res) => {
                                         createdAt: "$$comment.createdAt",
                                         updatedAt: "$$comment.updatedAt",
                                         author: "$author",
+                                        likes: "$$comment.likes",
                                         replies: {
                                             $cond: {
                                                 if: { $isArray: "$$comment.replies" },
