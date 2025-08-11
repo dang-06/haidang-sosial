@@ -1,23 +1,14 @@
+// redisClient.js
 import { createClient } from 'redis';
 
-const connectRedis = async () => {
-    const client = createClient({
-        password: process.env.REDIS_PASSWORD,
-        socket: {
-            host: 'redis-17014.c292.ap-southeast-1-1.ec2.redns.redis-cloud.com',
-            port: 17014
-        }
-    });
+const client = createClient({
+  url: 'redis://localhost:6379',
+});
 
-    client.on('error', err => {
-        // console.log('Redis Client Error', err)
-        return
-    });
-    
-    await client.connect();
+client.on('error', (err) => console.error('❌ Redis Client Error', err));
 
-    // console.log('Redis client connected');
+await client.connect();
 
-    return client;
-}
-export default connectRedis;
+console.log('✅ Connected to Redis');
+
+export default client;

@@ -11,43 +11,69 @@ const { ObjectId } = mongoose.Types;
 import { SocketService } from "../services/socket.service.js";
 import { notificationType } from "../utils/constant.js";
 import moment from "moment";
+import { postQueue } from "../utils/queueConfig.js";
+
+// export const addNewPost = async (req, res) => {
+//     try {
+//         const { caption } = req.body;
+//         const images = req.files;
+//         const authorId = req.id;
+//         const imageUploadPromises = images.map(async (image) => {
+//             const optimizedImageBuffer = await sharp(image.buffer)
+//                 .resize({ width: 1000, height: 1000, fit: 'inside' })
+//                 .toFormat('jpeg', { quality: 100 })
+//                 .toBuffer();
+//             const fileUri = `data:image/jpeg;base64,${optimizedImageBuffer.toString('base64')}`;
+//             const cloudResponse = await cloudinary.uploader.upload(fileUri);
+//             return cloudResponse.secure_url;
+//         });
+//         const imageUrls = await Promise.all(imageUploadPromises);
+//         const post = await Post.create({
+//             caption,
+//             image: imageUrls,
+//             author: authorId
+//         });
+//         const user = await User.findById(authorId);
+//         if (user) {
+//             user.posts.push(post._id);
+//             await user.save();
+//         }
+//         await post.populate({ path: 'author', select: '-password' });
+//         return res.status(201).json({
+//             message: 'New post added',
+//             post,
+//             success: true,
+//         });
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: 'An error occurred', error: error.message });
+//     }
+// };
 
 export const addNewPost = async (req, res) => {
     try {
         const { caption } = req.body;
         const images = req.files;
         const authorId = req.id;
-        const imageUploadPromises = images.map(async (image) => {
-            const optimizedImageBuffer = await sharp(image.buffer)
-                .resize({ width: 1000, height: 1000, fit: 'inside' })
-                .toFormat('jpeg', { quality: 100 })
-                .toBuffer();
-            const fileUri = `data:image/jpeg;base64,${optimizedImageBuffer.toString('base64')}`;
-            const cloudResponse = await cloudinary.uploader.upload(fileUri);
-            return cloudResponse.secure_url;
-        });
-        const imageUrls = await Promise.all(imageUploadPromises);
-        const post = await Post.create({
+
+        // Đẩy job vào queue
+        await postQueue.add('newPost', {
             caption,
-            image: imageUrls,
-            author: authorId
+            images: images.map(img => img.buffer.toString('base64')), // truyền dạng base64
+            authorId
         });
-        const user = await User.findById(authorId);
-        if (user) {
-            user.posts.push(post._id);
-            await user.save();
-        }
-        await post.populate({ path: 'author', select: '-password' });
-        return res.status(201).json({
-            message: 'New post added',
-            post,
+
+        return res.status(202).json({
+            message: 'Post is being processed',
             success: true,
         });
+
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({ message: 'An error occurred', error: error.message });
     }
 };
+
 export const getAllPost = async (req, res) => {
     try {
         const limit = 5;
@@ -237,7 +263,7 @@ export const likePost = async (req, res) => {
         await post.save();
 
         const sender = await User.findById(userDoAction).select('username profilePicture createdAt');
-        
+
         const postOwnerId = post.author.toString();
 
         // lưu thông báo vào DB
@@ -248,8 +274,8 @@ export const likePost = async (req, res) => {
             post: post._id,
             message: "đã thích bài viết của bạn."
         });
-    
-        
+
+
         if (postOwnerId !== userDoAction) {
             // const notification = {
             //     type: 'like',

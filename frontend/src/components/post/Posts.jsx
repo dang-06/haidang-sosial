@@ -116,8 +116,8 @@ const Posts = () => {
       {
         renderPosts?.map((post, index) => {
           if (posts.length == index + 1) {
-            return (<Post ref={lastElementRef} key={post._id} post={post} />)
-          } else return <Post key={post._id} post={post} />
+            return (<Post ref={lastElementRef} key={post?._id} post={post} />)
+          } else return <Post key={post?._id} post={post} />
         })
       }
       {posts.length < 1 && !loading &&

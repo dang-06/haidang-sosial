@@ -22,6 +22,29 @@ const Signup = () => {
     const [loading, setLoading] = useState(false);
     const [loadingVerify, setLoadingVerify] = useState(false);
     const { user } = useSelector(store => store.auth);
+
+    const [otp, setOtp] = useState(Array(6).fill(""));
+
+    const handleChange = (value, index) => {
+        if (/^[0-9]?$/.test(value)) {
+            const newOtp = [...otp];
+            newOtp[index] = value;
+            setOtp(newOtp);
+
+            // Tự động focus sang ô tiếp theo khi nhập số
+            if (value && index < 5) {
+                const nextInput = document.getElementById(`otp-${index + 1}`);
+                nextInput?.focus();
+            }
+        }
+    };
+
+    const handleKeyDown = (e, index) => {
+        if (e.key === "Backspace" && !otp[index] && index > 0) {
+            const prevInput = document.getElementById(`otp-${index - 1}`);
+            prevInput?.focus();
+        }
+    };
     const navigate = useNavigate();
     const changeEventHandler = (e) => {
         setInput({ ...input, [e.target.name]: e.target.value });
@@ -142,28 +165,34 @@ const Signup = () => {
                         TOTP
                     </Typography> */}
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                        <p className='text-base text-center text-sm'>Mã OTP đã được gửi đến Email của bạn</p>
-
-                        <div>
-                            <span className='font-medium text-sm'>OTP</span>s
-                            <div className="flex">
-                                <Input
-                                    type="text"
-                                    name="totp"
-                                    value={input.totp}
-                                    onChange={changeEventHandler}
-                                    className="focus-visible:ring-transparent my-2"
-                                />
-                                {
-                                    loading ? (
-                                        <Button className='mt-2 ml-2'>
-                                            <Loader2 className='mr-1 h-4 w-4 animate-spin' />
-                                        </Button>
-                                    ) : (
-                                        <Button className='mt-2 ml-2' onClick={signupHandler}>Xác nhận</Button>
-                                    )
-                                }
+                        <div className="text-center">
+                            <p className="text-base mb-4">Mã OTP đã được gửi đến Email của bạnn</p>
+                            <div className="flex justify-center gap-2">
+                                {otp.map((digit, index) => (
+                                    <Input
+                                        key={index}
+                                        id={`otp-${index}`}
+                                        type="text"
+                                        maxLength={1}
+                                        value={digit}
+                                        onChange={(e) => handleChange(e.target.value, index)}
+                                        onKeyDown={(e) => handleKeyDown(e, index)}
+                                        className="w-10 h-10 text-center text-lg"
+                                    />
+                                ))}
                             </div>
+                            {loading ? (
+                                <Button className="mt-4">
+                                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                                </Button>
+                            ) : (
+                                <Button
+                                    className="mt-4"
+                                    onClick={() => signupHandler(otp.join(""))}
+                                >
+                                    Xác nhận
+                                </Button>
+                            )}
                         </div>
                     </Typography>
                 </Box>

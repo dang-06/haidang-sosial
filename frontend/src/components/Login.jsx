@@ -49,6 +49,29 @@ const Login = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
+    const [otp, setOtp] = useState(Array(6).fill(""));
+
+    const handleChange = (value, index) => {
+        if (/^[0-9]?$/.test(value)) {
+            const newOtp = [...otp];
+            newOtp[index] = value;
+            setOtp(newOtp);
+
+            // Tự động focus sang ô tiếp theo khi nhập số
+            if (value && index < 5) {
+                const nextInput = document.getElementById(`otp-${index + 1}`);
+                nextInput?.focus();
+            }
+        }
+    };
+
+    const handleKeyDown = (e, index) => {
+        if (e.key === "Backspace" && !otp[index] && index > 0) {
+            const prevInput = document.getElementById(`otp-${index - 1}`);
+            prevInput?.focus();
+        }
+    };
+
     const inputSchema = Yup.object().shape({
         email: Yup.string()
             .email('Địa chỉ email không hợp lệ')
@@ -72,7 +95,7 @@ const Login = () => {
         const { name, value } = e.target;
         setInput({ ...input, [e.target.name]: e.target.value });
         if (touched[name]) {
-            validateField(inputSchema, name, value,setErrors);
+            validateField(inputSchema, name, value, setErrors);
         }
     }
 
@@ -80,7 +103,7 @@ const Login = () => {
         const { name, value } = e.target;
         setInputSignUp({ ...inputSignup, [e.target.name]: e.target.value });
         if (touchedSignUp[name]) {
-            validateField(inputSignupSchema, name, value,setErrorsSignUp);
+            validateField(inputSignupSchema, name, value, setErrorsSignUp);
         }
     }
 
@@ -92,7 +115,7 @@ const Login = () => {
             [name]: true,
         }));
 
-        await validateField(inputSchema, name, value,setErrors);
+        await validateField(inputSchema, name, value, setErrors);
     };
 
     const handleBlurSignUp = async (e) => {
@@ -102,10 +125,10 @@ const Login = () => {
             [name]: true,
         }));
 
-        await validateField(inputSignupSchema, name, value,setErrorsSignUp);
+        await validateField(inputSignupSchema, name, value, setErrorsSignUp);
     };
 
-    const validateField = async (schema, name, value,setErr) => {
+    const validateField = async (schema, name, value, setErr) => {
         try {
             await Yup.reach(schema, name).validate(value);
             setErr((prevErrors) => ({
@@ -422,36 +445,34 @@ const Login = () => {
             >
                 <Box sx={style} tabIndex={0}>
                     <Typography id="modal-modal-description" component="div" sx={{ mt: 2 }}>
-                        <h1 className='text-center font-bold'>
-                            Mã OTP đã được gửi đến Email của bạn
-                        </h1>
-
-                        <div className='mt-4'>
-                            <span className='font-medium text-sm'>OTP</span>
-                            <div className="flex mt-2">
-                                <Input
-                                    type="text"
-                                    name="totp"
-                                    value={inputSignup.totp}
-                                    onChange={changeSignUpEventHandler}
-                                    className="focus-visible:ring-transparent my-2"
-                                />
-                                {
-                                    loadingVerify ? (
-                                        <Button className='mt-2 ml-2' disabled>
-                                            <Loader2 className='mr-1 h-4 w-4 animate-spin' />
-                                            Xin chờ...
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            className='mt-2 ml-2'
-                                            onClick={signupHandler}
-                                        >
-                                            Xác nhận
-                                        </Button>
-                                    )
-                                }
+                        <div className="text-center">
+                            <p className="text-base mb-4">Mã OTP đã được gửi đến Email của bạnn</p>
+                            <div className="flex justify-center gap-2">
+                                {otp.map((digit, index) => (
+                                    <Input
+                                        key={index}
+                                        id={`otp-${index}`}
+                                        type="text"
+                                        maxLength={1}
+                                        value={digit}
+                                        onChange={(e) => handleChange(e.target.value, index)}
+                                        onKeyDown={(e) => handleKeyDown(e, index)}
+                                        className="w-10 h-10 text-center text-lg"
+                                    />
+                                ))}
                             </div>
+                            {loading ? (
+                                <Button className="mt-4">
+                                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                                </Button>
+                            ) : (
+                                <Button
+                                    className="mt-4"
+                                    onClick={() => signupHandler(otp.join(""))}
+                                >
+                                    Xác nhận
+                                </Button>
+                            )}
                         </div>
                     </Typography>
                 </Box>
