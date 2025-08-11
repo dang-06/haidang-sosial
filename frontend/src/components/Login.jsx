@@ -378,7 +378,7 @@ const Login = () => {
                                     Xin chờ...
                                 </Button>
                             ) : (
-                                <Button onClick={verifyHandler} className='w-[160px] mt-1'>Đăng kí</Button>
+                                <Button onClick={verifyHandler} className='w-[160px] mt-1'>Đăng ký</Button>
                             )}
                         </motion.div>
                     )}
@@ -415,7 +415,7 @@ const Login = () => {
                             <h1 className='text-center text-3xl font-bold text-white'>Xin chào !!!</h1>
                             <span className='text-center text-sm text-white px-8'>Đăng ký và bắt đầu hành trình khám phá những thứ mới mẻ</span>
                             <div className="flex text-center items-center justify-center w-full">
-                                <Button type='button' className='w-[160px]' onClick={signUpHandle}>Đăng kí</Button>
+                                <Button type='button' className='w-[160px]' onClick={signUpHandle}>Đăng ký</Button>
                             </div>
                         </motion.div>
 
