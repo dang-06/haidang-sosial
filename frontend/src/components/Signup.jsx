@@ -125,7 +125,7 @@ const Signup = () => {
                             Xin chờ...
                         </Button>
                     ) : (
-                        <Button onClick={verifyHandler}>Đăng kí</Button>
+                        <Button onClick={verifyHandler}>Đăng ký</Button>
                     )
                 }
                 <span className='text-center mt-4 text-sm'>Bạn đã có tài khoản  <Link to="/login" className='text-blue-600'>Đăng nhập</Link></span>

@@ -3,8 +3,10 @@ import React from 'react'
 import { Outlet } from 'react-router-dom';
 import RightSidebar from '../RightSidebar';
 import Notification from './Notification.jsx';
+import useGetNotificationRT from '@/hooks/useGetNotificationRT';
 
 const NotificationLayout = () => {
+    useGetNotificationRT()
     useGetSuggestedUsers();
     return (
         <div className='flex w-[83%]  mt-2'>
