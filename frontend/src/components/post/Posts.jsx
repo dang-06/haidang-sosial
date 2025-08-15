@@ -35,14 +35,31 @@ const Posts = () => {
     if (node) observer.current.observe(node)
   }
 
-  const fetchPosts = async (type = '', sortBy = '') => {
+  const fetchPosts = async (type = '', sortBy = '', isLocation) => {
     try {
       setLoading(true);
       const res = await getPost(page, type, sortBy);
       if (res.success) {
-        setRenderPosts(res.posts);
-        setTotal(res.total)
-        dispatch(setPosts(res.posts));
+        setRenderPosts(prevPosts => {
+          const merged = !isLocation ? [...prevPosts, ...res.posts] : res.posts;
+          // Loại bỏ trùng lặp dựa trên post._id
+          const unique = merged.filter(
+            (post, index, self) =>
+              index === self.findIndex(p => p?._id === post?._id)
+          );
+          return unique;
+        });
+
+        setTotal(res.total);
+
+        // Dispatch cũng dùng danh sách không trùng lặp
+        const mergedPosts = !isLocation ? [...(posts || []), ...res.posts] : res.posts;
+        const uniquePosts = mergedPosts.filter(
+          (post, index, self) =>
+            index === self.findIndex(p => p?._id === post?._id)
+        );
+
+        dispatch(setPosts(uniquePosts));
       }
     } catch (error) {
       console.log(error);
@@ -55,11 +72,12 @@ const Posts = () => {
     let type, sortBy = ''
     if (location.pathname.includes('hot')) {
       type = 'hot'
-      sortBy = text
-    }
-    else sortBy = text
+      sortBy = text == 'list' ? 'popular' : text
+    } else if (location.pathname.includes('saved')) {
+      type = 'saved'
+    } else sortBy = text
     if (renderPosts.length != total) {
-      fetchPosts(type, sortBy);
+      fetchPosts(type, sortBy, false);
     }
 
     console.log(page);
@@ -72,15 +90,15 @@ const Posts = () => {
     let type, sortBy = ''
     if (location.pathname.includes('hot')) {
       type = 'hot'
-      sortBy = text
-    }
-    else sortBy = text
+      sortBy = text == 'list' ? 'popular' : text
+    } else if (location.pathname.includes('saved')) {
+      type = 'saved'
+    } else sortBy = text
     setPage(1)
-    setRenderPosts([])
     if (page == 1) {
-      fetchPosts(type, sortBy);
+      fetchPosts(type, sortBy, true);
     }
-  }, [text, location.key]);
+  }, [text, location.key, location.pathname, location]);
 
   useEffect(() => {
     if (posts) {
@@ -93,7 +111,7 @@ const Posts = () => {
   };
   return (
     <div>
-      {loading && Array.from({ length: 8 }).map(((_,index) => (
+      {loading && Array.from({ length: 8 }).map(((_, index) => (
         <div key={index} className="flex flex-col w-full mb-3 bg-white px-5 py-3 gap-5">
           {/* <Loader2 className='h-8 w-8 animate-spin text-maincolor' /> */}
           <div className="flex gap-2 w-full">
@@ -115,12 +133,12 @@ const Posts = () => {
       <hr width="100%" size="10px" align="center" className='mb-3 mt-1' /> */}
       {
         renderPosts?.map((post, index) => {
-          if (posts.length == index + 1) {
+          if (posts?.length == index + 1) {
             return (<Post ref={lastElementRef} key={post?._id} post={post} />)
           } else return <Post key={post?._id} post={post} />
         })
       }
-      {posts.length < 1 && !loading &&
+      {posts?.length < 1 && !loading &&
         <div className='flex flex-col gap-3 items-center justify-center bg-white w-full h-[60vh] mx-auto transition-all duration-[300ms] pt-4 px-5'>
           {/* <PiEmptyFill className='text-maincolor w-10 h-10' /> */}
           <RiErrorWarningFill className='text-maincolor w-10 h-10' />

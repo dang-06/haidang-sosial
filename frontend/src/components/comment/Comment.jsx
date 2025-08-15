@@ -27,9 +27,9 @@ const Comment = ({ commentProp }) => {
     useEffect(() => {
         setCommentLike(comment?.likes?.length)
         setLiked(comment?.likes?.includes(user?._id) || false);
-        setCommentReplies(comment?.replies.length)
+        setCommentReplies(comment?.replies?.length)
         setReplies(comment?.replies)
-    }, [posts,comment]);
+    }, []);
 
     useEffect(() => {
         setComment(commentProp);
@@ -102,7 +102,7 @@ const Comment = ({ commentProp }) => {
             <div className='flex gap-3 items-center relative'>
                 <Avatar src={comment?.author?.profilePicture} />
                 <div className="flex flex-col">
-                    <span className='font-semibold text-base'>{comment?.author.username} <span className='font-normal text-base'>{parseMentions(comment?.text)}</span></span>
+                    <span className='font-semibold text-base'>{comment?.author?.username} <span className='font-normal text-base'>{parseMentions(comment?.text)}</span></span>
                     <div className="flex gap-4">
                         <span className='text-xs text-gray-400'>{formatDate}</span>
                         {commentLike > 0 && <span className='text-xs text-gray-600 font-medium cursor-pointer'>{commentLike} lượt thích</span>}

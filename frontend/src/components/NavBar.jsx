@@ -83,7 +83,7 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
   const sidebarItems = [
     { icon: <IoHomeOutline className='h-7 w-7' />, iconActive: <IoHome className='text-maincolor h-7 w-7' />, text: "Trang chủ" },
     { icon: <MdOutlineExplore className='h-7 w-7' />, iconActive: <MdExplore className='text-maincolor h-7 w-7' />, text: "Xu hướng" },
-    { icon: <PiVideoLight className='h-7 w-7' />, iconActive: <PiVideoDuotone className='text-maincolor h-7 w-7' />, text: "Video" },
+    // { icon: <PiVideoLight className='h-7 w-7' />, iconActive: <PiVideoDuotone className='text-maincolor h-7 w-7' />, text: "Video" },
     { icon: <IoIosNotificationsOutline className='h-7 w-7' />, iconActive: <IoMdNotifications className='text-maincolor h-7 w-7' />, text: "Thông báo" },
     {
       icon: <Tooltip title="Account"><AVT src={user?.profilePicture} sx={{ width: 27, height: 27 }}></AVT></Tooltip>,
@@ -160,9 +160,9 @@ const NavBar = ({ sidebarOpen, toggleSidebar }) => {
 
           </div>
           <div className='w-[30%] flex items-center justify-end'>
-            <div className="p-1 rounded-full h-7 w-7 bg-slate-200 flex items-center justify-center hover:bg-slate-300 mr-7"><IoLogoGameControllerA className='h-7 w-7' /></div>
+            {/* <div className="p-1 rounded-full h-7 w-7 bg-slate-200 flex items-center justify-center hover:bg-slate-300 mr-7"><IoLogoGameControllerA className='h-7 w-7' /></div>
             <div className="p-1 rounded-full h-7 w-7 bg-slate-200 flex items-center justify-center hover:bg-slate-300 mr-7"><IoIosSettings className='h-6 w-6' /></div>
-            <div className="p-1 rounded-full h-7 w-7 bg-slate-200 flex items-center justify-center hover:bg-slate-300 mr-7" onClick={changeMode}><MdNightsStay className='h-6 w-6' /></div>
+            <div className="p-1 rounded-full h-7 w-7 bg-slate-200 flex items-center justify-center hover:bg-slate-300 mr-7" onClick={changeMode}><MdNightsStay className='h-6 w-6' /></div> */}
             <div
               onClick={() => {
                 setOpenCreatePost(true)

@@ -12,7 +12,7 @@ const Messages = ({ selectedUser }) => {
     const {messages} = useSelector(store=>store.chat);
     const {user} = useSelector(store=>store.auth);
     return (    
-        <div className='overflow-y-auto flex-1 p-4'>
+        <div className='overflow-y-auto p-4'>
             <div className='flex justify-center'>
                 <div className='flex flex-col items-center justify-center'>
                     <Avatar className="h-20 w-20">

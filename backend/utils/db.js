@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
     try {
-        const uri = process.env.MONGO_URI || "mongodb://localhost:27017,localhost:27018,localhost:27019/haidang-social?replicaSet=rs0";
+        const uri = process.env.MONGO_URI || "mongodb+srv://dominhhaidang2002:Haidang2002@haidang-social.26fju.mongodb.net/?retryWrites=true&w=majority&appName=haidang-social";
 
         const connection = await mongoose.connect(uri, {
             readPreference: "secondary",

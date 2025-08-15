@@ -9,6 +9,7 @@ import messageRoute from "./routes/message.route.js";
 import { app, server } from "./socket/socket.js";
 import path from "path";
 import connectRedis from "./utils/redis.js";
+import { startHotFeedScheduler } from "./scheduler/hotFeedScheduler.js";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use("/api/v1/user", userRoute);
 app.use("/api/v1/post", postRoute);
 app.use("/api/v1/message", messageRoute);
 
+startHotFeedScheduler();
 
 app.use(express.static(path.join(__dirname, "/frontend/dist")));
 app.get("*", (req, res) => {

@@ -46,11 +46,11 @@ const browserRouter = createBrowserRouter([
         path: '/account/edit',
         element: <ProtectedRoutes><EditProfile /></ProtectedRoutes>
       },
-      {
-        path: '/chat',
-        element: <ProtectedRoutes><ChatPage /></ProtectedRoutes>
-      },
     ]
+  },
+  {
+    path: '/chat',
+    element: <ProtectedRoutes><ChatPage /></ProtectedRoutes>
   },
   {
     path: '/login',
@@ -85,6 +85,7 @@ function App() {
       });
 
       socketio.on('notification', (notification) => {
+        console.log("notification", notification);
         dispatch(setLikeNotification(notification));
       });
 

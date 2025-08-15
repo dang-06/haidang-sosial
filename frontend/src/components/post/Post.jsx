@@ -29,10 +29,10 @@ const Post = forwardRef((props, ref) => {
     const [open, setOpen] = useState(false);
     const { user } = useSelector(store => store.auth);
     const { posts } = useSelector(store => store.post);
-    const [liked, setLiked] = useState(post.likes.includes(user?._id) || false);
-    const [marked, setMarked] = useState(post.bookmarks?.includes(user?._id) || false);
-    const [postLike, setPostLike] = useState(post.likes.length);
-    const [comment, setComment] = useState(post.comments);
+    const [liked, setLiked] = useState(post?.likes.includes(user?._id) || false);
+    const [marked, setMarked] = useState(post?.bookmarks?.includes(user?._id) || false);
+    const [postLike, setPostLike] = useState(post?.likes?.length);
+    const [comment, setComment] = useState(post?.comments);
     const [isAnimating, setIsAnimating] = useState(false);
     const dispatch = useDispatch();
     const [formatDate, setFormatDate] = useState("");
@@ -74,7 +74,7 @@ const Post = forwardRef((props, ref) => {
     const handleSendDuration = async (duration) => {
         try {
             const read = {
-                postId: post._id,
+                postId: post?._id,
                 duration: duration,
             }
             const res = await readPost(read)
@@ -97,12 +97,12 @@ const Post = forwardRef((props, ref) => {
                 setIsAnimating(true);
                 setTimeout(() => setIsAnimating(false), 4000);
             }
-            const res = await axios.get(`${import.meta.env.VITE_API_URI}/post/${post._id}/${action}`, { withCredentials: true });
+            const res = await axios.get(`${import.meta.env.VITE_API_URI}/post/${post?._id}/${action}`, { withCredentials: true });
             if (res.data.success) {
                 const updatedLikes = liked ? postLike - 1 : postLike + 1;
                 setPostLike(updatedLikes);
                 const updatedPostData = posts.map(p =>
-                    p._id === post._id ? {
+                    p._id === post?._id ? {
                         ...p,
                         likes: liked ? p.likes.filter(id => id !== user._id) : [...p.likes, user._id]
                     } : p
@@ -120,7 +120,7 @@ const Post = forwardRef((props, ref) => {
 
     const commentHandler = async () => {
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URI}/post/${post._id}/comment`, { text }, {
+            const res = await axios.post(`${import.meta.env.VITE_API_URI}/post/${post?._id}/comment`, { text }, {
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -131,7 +131,7 @@ const Post = forwardRef((props, ref) => {
                 setComment(updatedCommentData);
 
                 const updatedPostData = posts.map(p =>
-                    p._id === post._id ? { ...p, comments: updatedCommentData } : p
+                    p._id === post?._id ? { ...p, comments: updatedCommentData } : p
                 );
 
                 dispatch(setPosts(updatedPostData));
@@ -172,8 +172,8 @@ const Post = forwardRef((props, ref) => {
     }
 
     useEffect(() => {
-        setComment(props.post.comments)
-        const formatted = formatDateHandler(post.createdAt);
+        setComment(props.post?.comments)
+        const formatted = formatDateHandler(post?.createdAt);
         setFormatDate(formatted);
     }, [post, props])
     return (
@@ -181,12 +181,12 @@ const Post = forwardRef((props, ref) => {
             <div ref={postRef} className='w-full mx-auto transition-all duration-[300ms] pt-4 px-5'>
                 <div className='flex items-center justify-between mb-1 px-2 md:px-0'>
                     <div className='flex items-center gap-2'>
-                        <Link to={`/profile/${post.author?._id}`}>
-                            <Avatar sx={{ width: 50, height: 50 }} alt="post_image" src={post.author?.profilePicture} />
+                        <Link to={`/profile/${post?.author?._id}`}>
+                            <Avatar sx={{ width: 50, height: 50 }} alt="post_image" src={post?.author?.profilePicture} />
                         </Link>
                         <div className='flex flex-col'>
-                            <Link to={`/profile/${post.author?._id}`} className='w-fit relative '>
-                                <span className='font-semibold text-base'>{post.author?.username}</span>
+                            <Link to={`/profile/${post?.author?._id}`} className='w-fit relative '>
+                                <span className='font-semibold text-base'>{post?.author?.username}</span>
                                 <div className="flex gap-1 absolute right-[-50px] top-1">
                                     {/* <video
                                         width="20"
@@ -229,10 +229,10 @@ const Post = forwardRef((props, ref) => {
                                 </div>
 
                             </Link>
-                            {/* {user?._id === post.author._id && <Badge variant="secondary">Author</Badge>} */}
+                            {/* {user?._id === post?.author._id && <Badge variant="secondary">Author</Badge>} */}
                             <div className="flex gap-2">
                                 <span className='text-xs text-gray-600'>{formatDate}</span>
-                                <span className='text-xs text-gray-600'>{post.author?.followers?.length || "0"} người theo dõi {post.author?.gender == "female" ? "cô ấy" : "anh ấy"}</span>
+                                {/* <span className='text-xs text-gray-600'>{post?.author?.followers?.length || "0"} người theo dõi {post?.author?.gender == "female" ? "cô ấy" : "anh ấy"}</span> */}
                             </div>
 
                         </div>
@@ -248,7 +248,7 @@ const Post = forwardRef((props, ref) => {
 
                             <Button variant='ghost' className="cursor-pointer w-fit">Add to favorites</Button>
                             {
-                                user && user?._id === post?.author._id && <Button onClick={deletePostHandler} variant='ghost' className="cursor-pointer w-fit">Delete</Button>
+                                user && user?._id === post?.author?._id && <Button onClick={deletePostHandler} variant='ghost' className="cursor-pointer w-fit">Delete</Button>
                             }
                         </DialogContent>
                     </Dialog>
@@ -256,12 +256,12 @@ const Post = forwardRef((props, ref) => {
 
                 <div className='pl-[60px]'>
                     <span className='text-gray-900'>
-                        {parseMentions(post.caption)}
+                        {parseMentions(post?.caption)}
                     </span>
-                    {post.image?.length == 1 ?
+                    {post?.image?.length == 1 ?
                         <img
                             className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden cursor-pointer'
-                            src={post.image}
+                            src={post?.image}
                             alt="post_img"
                             onClick={() => {
                                 dispatch(setSelectedPost(post));
@@ -270,7 +270,7 @@ const Post = forwardRef((props, ref) => {
                         />
                         :
                         <ImageList sx={{ width: '100%', height: '100%' }} cols={4} rowHeight={170}>
-                            {post.image?.map((item, index) => (
+                            {post?.image?.map((item, index) => (
                                 <ImageListItem key={index}>
                                     <img
                                         className='rounded-lg w-auto max-h-[230px] mt-2 object-cover overflow-hidden cursor-pointer'
@@ -341,10 +341,10 @@ const Post = forwardRef((props, ref) => {
                     }} className='cursor-pointer  hover:text-maincolor' />
                     <span className=''>{comment?.length}</span>
                 </div>
-                <div className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor '>
+                {/* <div className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor '>
                     <LiaShareSquareSolid size={'20'} className='cursor-pointer ' />
                     <span className=' hover:text-maincolor'>Chia sẻ</span>
-                </div>
+                </div> */}
                 {
                     marked ?
                         <div onClick={bookmarkHandler} className='flex items-center gap-2 cursor-pointer text-gray-600 hover:text-maincolor text-yellow-600'>

@@ -12,6 +12,7 @@ import { SocketService } from "../services/socket.service.js";
 import { notificationType } from "../utils/constant.js";
 import moment from "moment";
 import { postQueue } from "../utils/queueConfig.js";
+import client from "../utils/redis.js";
 
 // export const addNewPost = async (req, res) => {
 //     try {
@@ -51,6 +52,7 @@ import { postQueue } from "../utils/queueConfig.js";
 // };
 
 export const addNewPost = async (req, res) => {
+    // req.id = '6895a9d2583e45c670756a42';
     try {
         const { caption } = req.body;
         const images = req.files;
@@ -59,7 +61,7 @@ export const addNewPost = async (req, res) => {
         // Đẩy job vào queue
         await postQueue.add('newPost', {
             caption,
-            images: images.map(img => img.buffer.toString('base64')), // truyền dạng base64
+            images: images?.map(img => img.buffer.toString('base64')), // truyền dạng base64
             authorId
         });
 
@@ -75,161 +77,306 @@ export const addNewPost = async (req, res) => {
 };
 
 export const getAllPost = async (req, res) => {
+    // req.id = '6895a9d2583e45c670756a42';
     try {
-        const limit = 5;
-        const page = parseInt(req.query.page) || 1;
-        const { type, sortBy } = req.query || '';
+        const userId = req.id;
+        const {
+            page = 1,
+            limit = 10,
+            type = 'following', // 'hot' or 'following'
+            sortBy = 'popular' // 'newest', 'oldest', 'popular'
+        } = req.query;
 
-        if (sortBy === 'saved') {
-            const user = await User.findById(req.id).select('bookmarks');
-            const savedPostIds = user.bookmarks || [];
+        const pageNum = Number(page);
+        const limitNum = Math.max(Number(limit), 10); // Đảm bảo ít nhất 10 posts
+        const start = (pageNum - 1) * limitNum;
+        const end = start + limitNum - 1;
 
-            if (savedPostIds.length === 0) {
-                return res.status(200).json({
-                    posts: [],
-                    total: 0,
-                    success: true,
-                });
+        const isHotFeed = type === 'hot';
+        let isSavedFeed = type === 'saved';
+
+        let posts = [];
+        let cachedPosts = [];
+        let fromCache = false;
+        let fromDatabase = false;
+        // Tính tổng số documents
+        let totalDocs = 0;
+
+        // ===== CASE: type = saved =====
+        if (isSavedFeed) {
+            // Lấy danh sách ID bài đã lưu
+            const user = await User.findById(userId).select('bookmarks').lean();
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'User not found' });
             }
 
-            const total = await Post.countDocuments({ _id: { $in: savedPostIds } });
-
-            const posts = await Post.find({ _id: { $in: savedPostIds } })
-                .sort({ createdAt: -1 })
-                .limit(limit * page)
-                .populate({ path: 'author', select: 'username profilePicture followers gender' })
+            const savedIds = user.bookmarks || [];
+            if (savedIds.length === 0) {
+                return res.json({
+                    page: pageNum,
+                    totalPages: 0,
+                    total: 0,
+                    posts: [],
+                    success: true,
+                    feedType: 'saved'
+                });
+            }
+            // Query post đã bookmark
+            posts = await Post.find({ _id: { $in: savedIds } })
+                .populate('author', 'username profilePicture fullName verified')
                 .populate({
                     path: 'comments',
-                    options: { sort: { createdAt: -1 } },
-                    populate: [
-                        {
-                            path: 'author',
-                            select: 'username profilePicture'
-                        },
-                        {
-                            path: 'replies',
-                            options: { sort: { createdAt: -1 } },
-                            populate: {
-                                path: 'author',
-                                select: 'username profilePicture'
-                            },
-                        }
-                    ]
-                });
+                    populate: { path: 'author', select: 'username profilePicture' }
+                })
+                .skip(start)
+                .limit(limitNum)
+                .lean();
 
-            return res.status(200).json({
-                posts: posts,
-                total: total,
-                success: true
+            totalDocs = savedIds.length;
+            const totalPages = Math.ceil(totalDocs / limitNum);
+
+            return res.json({
+                page: pageNum,
+                totalPages,
+                total: totalDocs,
+                posts,
+                success: true,
+                feedType: 'saved',
+                sortBy
             });
         }
 
-        let sort = {};
-        if (!sortBy || sortBy === "list") {
-            sort = { interactions: -1 };
-        } else if (sortBy === 'newest') {
-            sort = { createdAt: -1 };
-        } else if (sortBy === 'for-you') {
-            sort = {};
+        // Chọn Redis key
+        const key = isHotFeed ? `feed:hot` : `feed:${userId}`;
+
+        // Lấy dữ liệu từ Redis list
+        const rawPosts = await client.lRange(key, start, end);
+
+        // Parse posts từ Redis nếu có
+        if (rawPosts && rawPosts.length > 0) {
+            cachedPosts = rawPosts.map(post => {
+                try {
+                    return JSON.parse(post);
+                } catch (parseError) {
+                    console.error('Error parsing post from Redis:', parseError);
+                    return null;
+                }
+            }).filter(post => post !== null);
+
+            fromCache = true;
         }
 
-        let followingList = [];
-        let matchCondition = {};
-        let total = 0
-        if (!type) {
-            const user = await User.findById(req.id).select('following');
-            followingList = user.following || [];
-            if (followingList.length === 0) {
-                return res.status(200).json({
-                    posts: [],
-                    total: 0,
-                    success: true
-                });
+        // Tính số posts còn thiếu để đảm bảo ít nhất limitNum posts
+        const remainingNeeded = Math.max(limitNum - cachedPosts.length, 0);
+
+        if (remainingNeeded > 0) {
+            fromDatabase = true;
+
+            // Lấy IDs của posts đã có trong cache để exclude
+            const cachedPostIds = cachedPosts.map(post => post._id || post.id).filter(Boolean);
+
+            // Build query dựa trên type feed
+            let queryConditions = {};
+
+            if (isHotFeed) {
+                // Hot feed: lấy tất cả posts không cần theo dõi
+                queryConditions = {
+                    // Exclude posts đã có trong cache
+                    ...(cachedPostIds.length > 0 && { _id: { $nin: cachedPostIds } })
+                    // Không filter theo following cho hot feed
+                };
+            } else {
+                // Following feed: chỉ lấy posts từ người follow
+                const following = await getUserFollowing(userId);
+
+                queryConditions = {
+                    // Exclude posts đã có trong cache
+                    ...(cachedPostIds.length > 0 && { _id: { $nin: cachedPostIds } }),
+                    $or: [
+                        { author: { $in: following } }, // Posts từ người follow
+                        { mentions: userId }, // Posts mention user
+                        { author: userId } // Posts của chính user
+                    ]
+                };
             }
-            matchCondition = { author: { $in: followingList } };
-            total = await Post.countDocuments({ author: { $in: followingList } });
+
+            // Xác định sort order dựa trên sortBy
+            let sortOrder = {};
+            switch (sortBy) {
+                case 'oldest':
+                    sortOrder = { createdAt: 1 };
+                    break;
+                case 'popular':
+                    sortOrder = {
+                        interactions: -1,
+                        likes: -1,
+                        createdAt: -1
+                    };
+                    break;
+                case 'newest':
+                default:
+                    sortOrder = { createdAt: -1 };
+                    break;
+            }
+
+            // Tính skip - nếu có cache thì không skip, nếu không thì skip theo page
+            const dbSkip = cachedPosts.length > 0 ? 0 : start;
+
+            // Tăng limit để đảm bảo có đủ posts sau khi populate
+            const bufferLimit = Math.max(remainingNeeded * 1.5, remainingNeeded + 5);
+
+            // Query posts từ MongoDB với buffer
+            let additionalPosts = await Post.find(queryConditions)
+                .populate('author', 'username profilePicture fullName verified')
+                .populate({
+                    path: 'comments',
+                    populate: {
+                        path: 'author',
+                        select: 'username profilePicture'
+                    }
+                })
+                .sort(sortOrder)
+                .skip(dbSkip)
+                .limit(bufferLimit)
+                .lean();
+
+            // Nếu vẫn không đủ và đây là following feed, fallback sang tất cả posts
+            if (additionalPosts.length < remainingNeeded && !isHotFeed) {
+                const fallbackPosts = await Post.find({
+                    ...(cachedPostIds.length > 0 && { _id: { $nin: [...cachedPostIds, ...additionalPosts.map(p => p._id)] } })
+                })
+                    .populate('author', 'username profilePicture fullName verified')
+                    .populate({
+                        path: 'comments',
+                        populate: {
+                            path: 'author',
+                            select: 'username profilePicture'
+                        }
+                    })
+                    .sort(sortOrder)
+                    .limit(remainingNeeded - additionalPosts.length)
+                    .lean();
+
+                additionalPosts = [...additionalPosts, ...fallbackPosts];
+            }
+
+            // Đảm bảo chỉ lấy số lượng cần thiết
+            additionalPosts = additionalPosts.slice(0, remainingNeeded);
+
+            // Trộn posts: cache trước, database sau
+            posts = [...cachedPosts, ...additionalPosts];
         } else {
-            matchCondition = {};
-            total = await Post.countDocuments();
+            // Cache đủ rồi, chỉ dùng cache
+            posts = cachedPosts;
+        }
+
+        // Đảm bảo có ít nhất limitNum posts
+        if (posts.length < limitNum) {
+            console.warn(`⚠️ Only found ${posts.length} posts, expected ${limitNum}`);
+
+            // Nếu vẫn không đủ, lấy thêm từ database không filter
+            const missingCount = limitNum - posts.length;
+            const existingPostIds = posts.map(p => p._id || p.id).filter(Boolean);
+
+            const fillPosts = await Post.find({
+                _id: { $nin: existingPostIds }
+            })
+                .populate('author', 'username profilePicture fullName verified')
+                .populate({
+                    path: 'comments',
+                    populate: {
+                        path: 'author',
+                        select: 'username profilePicture'
+                    }
+                })
+                .sort({ createdAt: -1 })
+                .limit(missingCount)
+                .lean();
+
+            posts = [...posts, ...fillPosts];
         }
 
 
+        if (isHotFeed) {
+            totalDocs = limit;
+        } else {
+            // Following feed: ưu tiên lấy từ Redis length
+            try {
+                totalDocs = await client.lLen(key);
 
-        const posts = await Post.aggregate([
-            { $match: matchCondition },
-            {
-                $addFields: {
-                    isRead: {
-                        $cond: [{ $in: [new ObjectId(req.id), { $ifNull: ["$read", []] }] }, 1, 0]
+                // Nếu cache rỗng, fallback sang database count
+                if (totalDocs === 0) {
+                    const following = await getUserFollowing(userId);
+                    totalDocs = await Post.countDocuments({
+                        $or: [
+                            { author: { $in: following } },
+                            { mentions: userId },
+                            { author: userId }
+                        ]
+                    });
+
+                    // Nếu vẫn không có posts từ following, dùng tổng số posts
+                    if (totalDocs === 0) {
+                        totalDocs = await Post.countDocuments({});
                     }
                 }
-            },
-            { $sort: { isRead: 1, ...sort } },
-            { $limit: limit * page },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'author',
-                    foreignField: '_id',
-                    as: 'author'
-                }
-            },
-            { $unwind: "$author" },
-            {
-                $lookup: {
-                    from: 'comments',
-                    localField: 'comments',
-                    foreignField: '_id',
-                    as: 'comments'
-                }
-            },
-            {
-                $addFields: {
-                    comments: {
-                        $cond: {
-                            if: { $isArray: "$comments" },
-                            then: {
-                                $map: {
-                                    input: "$comments",
-                                    as: "comment",
-                                    in: {
-                                        _id: "$$comment._id",
-                                        text: "$$comment.text",
-                                        createdAt: "$$comment.createdAt",
-                                        updatedAt: "$$comment.updatedAt",
-                                        author: "$author",
-                                        likes: "$$comment.likes",
-                                        replies: {
-                                            $cond: {
-                                                if: { $isArray: "$$comment.replies" },
-                                                then: "$$comment.replies",
-                                                else: []
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            else: []
-                        }
-                    }
-                }
-            },
-        ]);
+            } catch (redisError) {
+                console.error('Redis lLen error, falling back to DB count:', redisError);
+                const following = await getUserFollowing(userId);
+                totalDocs = await Post.countDocuments({
+                    $or: [
+                        { author: { $in: following } },
+                        { mentions: userId },
+                        { author: userId }
+                    ]
+                }) || await Post.countDocuments({});
+            }
+        }
 
-        return res.status(200).json({
-            posts,
-            total,
-            success: true
+        const totalPages = Math.ceil(totalDocs / limitNum);
+
+        // Đảm bảo chỉ trả về đúng số lượng yêu cầu
+        const finalPosts = posts.slice(0, limitNum);
+
+        // Response format
+        res.json({
+            page: pageNum,
+            totalPages,
+            total: totalDocs,
+            posts: finalPosts,
+            success: true,
+            feedType: isHotFeed ? 'hot' : 'following',
+            sortBy: sortBy,
+            dataSource: {
+                fromCache: cachedPosts.length,
+                fromDatabase: fromDatabase ? finalPosts.length - cachedPosts.length : 0,
+                total: finalPosts.length,
+                cacheHitRate: `${Math.round((cachedPosts.length / Math.max(limitNum, 1)) * 100)}%`,
+                guaranteed: finalPosts.length >= limitNum ? 'Yes' : `No (${finalPosts.length}/${limitNum})`
+            }
         });
-    } catch (error) {
-        console.error("Error retrieving posts:", error);
-        return res.status(500).json({
-            message: 'Error retrieving posts',
-            error: error.message,
-            success: false
+
+    } catch (err) {
+        console.error('❌ Error in getAllPost:', err);
+        res.status(500).json({
+            error: 'Server error',
+            success: false,
+            message: err.message
         });
     }
 };
+
+const getUserFollowing = async (userId) => {
+    try {
+        const user = await User.findById(userId).select('following');
+        return user?.following || [];
+
+    } catch (error) {
+        console.error('Error getting user following:', error);
+        return [];
+    }
+};
+
 export const getUserPost = async (req, res) => {
     try {
         const authorId = req.id;
@@ -298,6 +445,8 @@ export const likePost = async (req, res) => {
             await SocketService.sendNotification(postOwnerId, notificationData)
         }
 
+        await updateHotScoreOnInteraction(postId, 'like');
+
         return res.status(200).json({ message: 'Post liked', success: true });
     } catch (error) {
         console.log(error);
@@ -360,6 +509,8 @@ export const addComment = async (req, res) => {
         post.comments.push(comment._id);
         post.interactions += 2;
         await post.save();
+
+        await updateHotScoreOnInteraction(postId, 'comment');
 
         return res.status(201).json({
             message: 'Comment Added',
@@ -638,9 +789,188 @@ export const readPost = async (req, res) => {
             { $addToSet: { read: userId } }
         );
 
+        await updateHotScoreOnInteraction(postId, 'share');
+
         return res.status(200).json({ type: 'read', message: `post read`, success: true });
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: 'Error updating read posts', error: error.message });
     }
 }
+
+export const buildHotFeedCache = async () => {
+    try {
+        console.log('🔥 Building hot feed cache...');
+
+        const key = 'feed:hot';
+
+        // Strategy 1: Fresh build - lấy posts trending trong 10000h
+        const timeThreshold = new Date(Date.now() - 10000 * 60 * 60 * 1000);
+
+        const hotPosts = await Post.find({
+            createdAt: { $gte: timeThreshold }
+        })
+            .populate('author', 'username profilePicture fullName verified')
+            .populate({
+                path: 'comments',
+                populate: {
+                    path: 'author',
+                    select: 'username profilePicture'
+                },
+            })
+            // Sắp xếp theo algorithm hot score
+            .sort({
+                interactions: -1,      // Interactions cao nhất
+                createdAt: -1          // Thời gian mới nhất
+            })
+            .limit(500)
+            .lean();
+
+        if (hotPosts.length > 0) {
+            // Tính hot score và sort lại
+            const scoredPosts = hotPosts.map(post => {
+                const ageHours = (Date.now() - new Date(post.createdAt)) / (1000 * 60 * 60);
+                const likesCount = post.likes?.length || 0;
+                const commentsCount = post.comments?.length || 0;
+                const interactions = post.interactions || 0;
+
+                // Hot score algorithm: (likes * 3 + comments * 5 + interactions) / (age + 2)^1.8
+                const hotScore = (likesCount * 3 + commentsCount * 5 + interactions) / Math.pow(ageHours + 2, 1.8);
+
+                return {
+                    ...post,
+                    hotScore
+                };
+            }).sort((a, b) => b.hotScore - a.hotScore);
+
+            const postsJson = scoredPosts.map(post => {
+                const { hotScore, ...postData } = post;
+                return JSON.stringify(postData);
+            });
+
+            // Atomic replace cache
+            const pipeline = client.multi();
+            pipeline.del(key);
+            pipeline.lPush(key, ...postsJson);
+            pipeline.expire(key, 60 * 30); // Cache 30 phút cho hot feed
+            await pipeline.exec();
+
+            console.log(`🔥 Hot feed cache built with ${hotPosts.length} posts (hot score algorithm)`);
+        } else {
+            console.log('🔥 No trending posts found, keeping existing cache');
+        }
+    } catch (error) {
+        console.error('❌ Error building hot feed cache:', error);
+    }
+};
+
+// Function để update hot feed khi có post mới có potential viral
+export const updateHotFeedOnNewPost = async (postId) => {
+    try {
+        // Chỉ update nếu post đạt threshold nhất định
+        const post = await Post.findById(postId)
+            .populate('author', 'username profilePicture fullName verified')
+            .populate({
+                path: 'comments',
+                populate: {
+                    path: 'author',
+                    select: 'username profilePicture'
+                },
+            })
+            .lean();
+
+        if (!post) return;
+
+        const likesCount = post.likes?.length || 0;
+        const commentsCount = post.comments?.length || 0;
+        const interactions = post.interactions || 0;
+
+        // Threshold: ít nhất 3 likes hoặc 2 comments hoặc 5 interactions trong 1h đầu
+        const ageHours = (Date.now() - new Date(post.createdAt)) / (1000 * 60 * 60);
+        const isViral = ageHours <= 1 && (likesCount >= 3 || commentsCount >= 2 || interactions >= 5);
+
+        if (isViral) {
+            const key = 'feed:hot';
+            const postData = JSON.stringify(post);
+
+            // Thêm vào đầu hot feed
+            await client.lPush(key, postData);
+            // Trim để giữ 500 posts
+            await client.lTrim(key, 0, 499);
+            // Refresh TTL
+            await client.expire(key, 60 * 60 * 2);
+
+            console.log(`🚀 Viral post ${postId} added to hot feed`);
+        }
+    } catch (error) {
+        console.error('❌ Error updating hot feed on new post:', error);
+    }
+};
+
+// Function để increment hot score khi có interaction
+export const updateHotScoreOnInteraction = async (postId, interactionType) => {
+    try {
+        const key = 'feed:hot';
+        const listLength = await client.lLen(key);
+
+        if (listLength === 0) return;
+
+        // Tìm post trong cache và update score
+        const posts = await client.lRange(key, 0, -1);
+        let postIndex = -1;
+        let updatedPost = null;
+
+        for (let i = 0; i < posts.length; i++) {
+            const post = JSON.parse(posts[i]);
+            if (post._id === postId) {
+                postIndex = i;
+
+                // Update interaction counts
+                switch (interactionType) {
+                    case 'like':
+                        post.interactions = (post.interactions || 0) + 1;
+                        break;
+                    case 'comment':
+                        post.interactions = (post.interactions || 0) + 2;
+                        break;
+                    case 'share':
+                        post.interactions = (post.interactions || 0) + 3;
+                        break;
+                }
+
+                updatedPost = post;
+                break;
+            }
+        }
+
+        if (postIndex >= 0 && updatedPost) {
+            // Update post tại vị trí cũ
+            await client.lSet(key, postIndex, JSON.stringify(updatedPost));
+            console.log(`🔥 Updated hot score for post ${postId} (${interactionType})`);
+        }
+    } catch (error) {
+        console.error('❌ Error updating hot score:', error);
+    }
+};
+
+// Function để clean up old cache entries
+export const cleanupOldFeeds = async () => {
+    try {
+        console.log('🧹 Cleaning up old feed caches...');
+
+        const pattern = 'feed:*';
+        const keys = await client.keys(pattern);
+
+        for (const key of keys) {
+            const ttl = await client.ttl(key);
+
+            // Nếu key không có TTL hoặc đã expired, xóa đi
+            if (ttl === -1 || ttl === -2) {
+                await client.del(key);
+                console.log(`🗑️  Deleted expired key: ${key}`);
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error cleaning up feeds:', error);
+    }
+};

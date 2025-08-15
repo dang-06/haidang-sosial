@@ -36,13 +36,13 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
     if (path.includes('hot')) {
         sidebarItems = [
             { icon: <GiBurningRoundShot />, text: "Xu hướng", path: "hot/list" },
-            { icon: <MdOutlineRecommend />, text: "Dành cho bạn", path: "hot/for-you" },
+            // { icon: <MdOutlineRecommend />, text: "Dành cho bạn", path: "hot/for-you" },
         ]
     } else if (path.includes('notification')) {
         sidebarItems = [
-            { icon: <MdOutlineAlternateEmail />, text: "@Bạn", path: "notification/at" },
-            { icon: <FaRegCommentDots />, text: "Bình luận", path: "notification/comment" },
-            { icon: <AiOutlineLike />, text: "Thích", path: "notification/like" },
+            // { icon: <MdOutlineAlternateEmail />, text: "@Bạn", path: "notification/at" },
+            { icon: <FaRegCommentDots />, text: "thông báo", path: "notification/comment" },
+            // { icon: <AiOutlineLike />, text: "Thích", path: "notification/like" },
             { icon: <FaRegMessage />, text: "Nhắn tin", path: "notification/message" },
         ]
     } else {
@@ -50,7 +50,7 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
             { icon: <FaRegStar />, text: "Nhiều tương tác", path: "" },
             { icon: <MdOutlineWatchLater />, text: "Mới nhất", path: "newest" },
             { icon: <FaRegSave />, text: "Đã lưu", path: "saved" },
-            { icon: <FaRegShareSquare />, text: "Chia sẻ lại", path: "re-share" },
+            // { icon: <FaRegShareSquare />, text: "Chia sẻ lại", path: "re-share" },
         ];
     }
 
@@ -64,10 +64,12 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
     const leftSidebarHandler = (textType) => {
         if (textType === '') {
             navigate("/");
+        } else if (textType === 'notification/message') {
+            navigate("/chat");
         } else {
             navigate(`/${textType}`);
         }
-    }
+    };
 
 
     return (
@@ -85,7 +87,7 @@ const LeftSidebar = ({ sidebarOpen, toggleSidebar }) => {
                     else if (item.path === 'notification/comment' && text == 'comment') isActive = true
                     else if (item.path === 'notification/like' && text == 'like') isActive = true
                     else if (item.path === 'notification/message' && text == 'message') isActive = true
-                    
+
                     return (
                         <div key={index}
                             onClick={() => leftSidebarHandler(item.path)}
