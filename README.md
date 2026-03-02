@@ -3,7 +3,7 @@
 </div>
 
 ## What Is It?
-**Haidang Sosial** Is A Modern Social Media Platform Designed To Help You Connect, Share, And Interact With Your Friends, Family, And Community In An Engaging And Enjoyable Way. Here Are Some Of The Highlights Of The Application:
+**Haidang Social** Is A Modern Social Media Platform Designed To Help You Connect, Share, And Interact With Your Friends, Family, And Community In An Engaging And Enjoyable Way. Here Are Some Of The Highlights Of The Application:
 - **Social Connectivity**: Connect With Friends, Family, And Like-Minded Individuals. Share Posts, Images, Videos, And Your Thoughts Easily.
 - **Engage And Participate**: Join Community Groups And Events Where You Can Discuss, Share, And Learn From Others With Similar Interests.
 - **Real-Time Notifications**: Get Instant Notifications About Activities And New Messages, Keeping You Updated With The Latest Information.
